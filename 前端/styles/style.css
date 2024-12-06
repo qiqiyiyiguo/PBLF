@@ -3,7 +3,9 @@ body{
     float:left;
     margin: 0% 0% 0% 0%;
     height:100%;
-    
+    background-image: url(../images/Image_31664659047251.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
     border-width: 1px;
 }
 ico{
@@ -11,31 +13,38 @@ ico{
     margin-left:2%;
     margin-top:2%
 }
-header{
+p.header{
     float: left;
+    
 }
 .foot{
-    margin-top:17%;
+    margin-top:21%;
     padding-bottom: 0;
     width:auto;
     border-width: 1px;
+    color:aliceblue;
+    font-family: xingshu;
 }
 p{
     text-align: center;
 }
 h1{
-    width:auto;
+    width:100%;
     text-shadow:3px -3px 5px #54585D;
-    font-size: 60px;
+    font-size: 600%;
     text-align: center;
-    padding:17% 0 0 0;
+    padding:13% 0 0 0;
+    font-family: duanning;
+    letter-spacing: 20%;
 }
 h2{
-    width:auto;
+    width:100%;
     color:#044BAE;
-    padding:50px 0 20px 0;
+    padding:1% 0 20px 0;
     text-shadow:1px -1px 5px #54585D;
     text-align: center;
+    font-family: agaea;
+    font-size: 200%;
 }
 img{
     padding:0 0 auto auto;
@@ -43,13 +52,32 @@ img{
     display:block;
     
 }
+
 .header{
-    font-size:15px;
-    margin-top:2.5%;
+    font-size:150%;
+    margin-top:1%;
+    font-family: guifanzi;
 }
 h1:hover{
     text-shadow: 5px -5px 5px #54585D;
 }
 h2:hover{
     text-shadow: 5px -5px 5px #54585D;
+}
+@font-face{
+    font-family:duanning;
+    src:url('../fonts/段宁毛笔行书.ttf');
+    
+  }
+@font-face {
+    font-family: agaea;
+    src:url('../fonts/AGaramondPro-Regular.otf');
+}
+@font-face {
+    font-family: xingshu;
+    src: url('../fonts/全新硬笔行书简.ttf');
+}
+@font-face {
+    font-family: guifanzi;
+    src: url('../fonts/博洋规范字3500.TTF');
 }
