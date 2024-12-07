@@ -22,31 +22,32 @@ p.header{
     padding-bottom: 0;
     width:auto;
     border-width: 1px;
-    color:aliceblue;
-    font-family: xingshu;
+    color:rgb(249, 251, 253);
+    font-family: "楷体";
+    font-size: 150%;
 }
 p{
     text-align: center;
 }
 h1{
     width:100%;
-    text-shadow:3px -3px 5px #54585D;
-    font-size: 600%;
+    
+    font-size: 700%;
     text-align: center;
     padding:13% 0 0 0;
-    font-family: duanning;
+    font-family: fangzheng;
     letter-spacing: 20%;
 }
 h2{
     width:100%;
     color:#044BAE;
     padding:1% 0 20px 0;
-    text-shadow:1px -1px 5px #54585D;
+    
     text-align: center;
     font-family: agaea;
     font-size: 200%;
 }
-img{
+ico>img{
     padding:0 0 auto auto;
     width:200px;
     display:block;
@@ -58,26 +59,139 @@ img{
     margin-top:1%;
     font-family: guifanzi;
 }
-h1:hover{
-    text-shadow: 5px -5px 5px #54585D;
-}
-h2:hover{
-    text-shadow: 5px -5px 5px #54585D;
-}
+
 @font-face{
-    font-family:duanning;
-    src:url('../fonts/段宁毛笔行书.ttf');
+    font-family:fangzheng;
+    src:url('../fonts/方正字迹-吕建德行楷简体.ttf');
     
   }
 @font-face {
     font-family: agaea;
     src:url('../fonts/AGaramondPro-Regular.otf');
 }
-@font-face {
-    font-family: xingshu;
-    src: url('../fonts/全新硬笔行书简.ttf');
-}
+
 @font-face {
     font-family: guifanzi;
     src: url('../fonts/博洋规范字3500.TTF');
+}
+
+@font-face{
+    font-family: kaiti;
+    src:url('../fonts/方正苏新诗柳楷简体.TTF')
+}
+
+/* 以下是页签的样式 */
+.item {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    height: 60px;
+    /* 手风琴效果就是鼠标悬浮宽度过渡 */
+    width: 60px;
+    margin-top: 1%;
+    margin-right:1%;
+    /* 超出隐藏，因为要把伪元素文字遮挡住 */
+    overflow: hidden;
+    background: #fff;
+    border-radius: 30px;
+    box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.24);
+    transition: all 0.5s;
+    float:right;
+}
+
+
+
+.item:hover {
+    width: 180px;
+    border: none;
+}
+
+/* 悬浮加背景色 */
+.first:hover .icon {
+    background-color: rgb(192, 246, 255);
+}
+
+.second:hover .icon {
+    background-color: pink;
+}
+
+.third:hover .icon {
+    background-color: rgb(188, 212, 192);
+}
+
+.fouth:hover .icon {
+    background-color: #e9e9e9;
+}
+
+.icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 30px;
+    font-size: 28px;
+    position: relative;
+    transition: all 0.5s;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: none;
+}
+
+.icon>img{
+    width: 40px;
+    height: 40px;
+}
+
+
+/* 通过伪元素添加内容介绍文字 */
+.item:nth-child(1) .icon::after {
+    position: absolute;
+    content: '个人中心';
+    /* 宽度随着内容自适应 */
+    width: fit-content;
+    /* 文字不换行 */
+    word-break: keep-all;
+    /* 设置伪元素文字大小为中等大小 */
+    font-size: 80%;
+    left: 72px;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+}
+
+.item:nth-child(2) .icon::after {
+    position: absolute;
+    content: '文创产品';
+    width: fit-content;
+    word-break: keep-all;
+    font-size: 80%;
+    left: 72px;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+}
+
+.item:nth-child(3) .icon::after {
+    position: absolute;
+    content: '校园风景';
+    width: fit-content;
+    word-break: keep-all;
+    font-size: 80%;
+    left: 72px;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family:kaiti;
+}
+
+.item:nth-child(4) .icon::after {
+    position: absolute;
+    content: '预约管理';
+    width: fit-content;
+    word-break: keep-all;
+    font-size: 80%;
+    left: 72px;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family:kaiti;
 }

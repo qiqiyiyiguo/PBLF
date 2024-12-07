@@ -2,14 +2,28 @@
 <html lang="en-US">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>My test page</title>
     <link href="styles/style.css" rel="stylesheet" />
-    
+    <script src="scripts/main.js"></script>
   </head>
   
   <body>
-
+<!-- 以下是页签 -->
+    <div class="item first">
+      <div onclick="clickAfter('个人中心')" style="color: #090B0A;" class="icon"><img src="images/个人中心.png" alt="个人中心"></div>
+    </div>
+    <div class="item second">
+      <div onclick="clickAfter('文创产品')" style="color: #1A1A1A;" class="icon"><img src="images/商品.png" alt="文创产品"></div>
+    </div>
+    <div class="item third">
+      <div onclick="clickAfter('校园风景')" style="color: #090B0A;" class="icon"><img src="images/风景.png" alt="校园风景"></div>
+    </div>
+    <div class="item fouth">
+      <div onclick="clickAfter('预约管理')" style="color: #090B0A;" class="icon"><img src="images/日历.png" alt="预约管理"></div>
+    </div>
+<!-- 以上是页签 -->
     <div class="ico">
       <ico>
         <img src="images/电子科技大学_爱给网_aigei_com.png" 
@@ -27,6 +41,7 @@
     </div>
     
     
+    
     <h1>欢迎来到电子科技大学</h1>
     <h2>Welcome to UESTC</h2>
     
@@ -34,6 +49,7 @@
         <p class="foot">制作人员：陈思蒙、邓皓舰、郭涵怡、青煜恒、易秋辰</p>
     </foot>
 
-    <script src="scripts/main.js"></script>
+
+    
   </body>
 </html>
