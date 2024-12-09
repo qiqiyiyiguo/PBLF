@@ -85,15 +85,15 @@ ico>img{
 
 /* 悬浮加背景色 */
 .first:hover .icon {
-    background-color: rgb(192, 246, 255);
+    background-color: #cbf1f5;
 }
 
 .second:hover .icon {
-    background-color: pink;
+    background-color: #ffe2e2;
 }
 
 .third:hover .icon {
-    background-color: rgb(188, 212, 192);
+    background-color: #caefe5dd;
 }
 
 .fouth:hover .icon {

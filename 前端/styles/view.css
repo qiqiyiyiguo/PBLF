@@ -8,7 +8,7 @@ body{
     display: inline;
     place-content: center;
     
-    background-color: aliceblue;
+    background-color: #defcf9;
 }
 *{
     box-sizing: border-box;
@@ -50,7 +50,7 @@ body{
     align-items: center;
     grid-column-start: b;
     grid-column-end: c;
-
+    
     box-sizing: border-box;
     transition: all 0.5s;
 }
@@ -62,6 +62,7 @@ body{
     border: none;
     box-shadow: 0px 15px 50px #0000009e;
     transform: scale(1.1,1.1);
+    background-color: #ffffd2;
 }
 
 .cards:hover img{
@@ -101,6 +102,7 @@ body{
     width: 1200px;
     border: none;
     box-shadow: 0px 15px 50px #0000009e;
+    background-color: #ffffd2;
 }
 
 .cards img{
@@ -166,7 +168,6 @@ body{
     cursor: pointer;
     font-family: kaiti;
     color:#050505
-    
 }
 
 
@@ -275,15 +276,15 @@ ico>img{
 
 /* 悬浮加背景色 */
 .first:hover .icon {
-    background-color: rgb(192, 246, 255);
+    background-color: #cbf1f5;
 }
 
 .second:hover .icon {
-    background-color: pink;
+    background-color: #ffe2e2;
 }
 
 .third:hover .icon {
-    background-color: rgb(188, 212, 192);
+    background-color: #caefe5dd;
 }
 
 .fouth:hover .icon {
