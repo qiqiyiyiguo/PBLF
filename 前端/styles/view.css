@@ -1,0 +1,359 @@
+body{
+    width: 100%;
+    float:left;
+    margin: 0% 0% 0% 0%;
+    height:100%;
+    border-width: 1px;
+    min-block-size: 100%;
+    display: inline;
+    place-content: center;
+    
+    background-color: aliceblue;
+}
+*{
+    box-sizing: border-box;
+    padding:0;
+    margin: 0;
+}
+
+@keyframes slide-fade-in{
+    from{
+        opacity: 0;
+        box-shadow: none;
+        transform: scale(.8) translateY(15vh);
+    }
+}
+
+.cards{
+    margin-top: 20%;
+    margin-bottom: 40%;
+    
+    display: grid;
+    row-gap: 10%;
+    grid-auto-flow: row;
+    grid-template-columns: 1fr 2fr 3fr 2fr 1fr;
+    grid-template-areas: 'a b c d e'
+}
+
+.card1{
+    animation: slide-fade-in both;
+    animation-timeline: view();
+    animation-range: contain 0% contain 50%;
+    border-radius:10px;
+    box-shadow: 0px 8px 20px #00000022;
+    color:#050505;
+    width:600px;
+    height:450px;
+    overflow:hidden;
+    display:inline-flex;
+    justify-items: center;
+    align-items: center;
+    grid-column-start: b;
+    grid-column-end: c;
+
+    box-sizing: border-box;
+    transition: all 0.5s;
+}
+
+
+
+.card1:hover {
+    width: 1200px;
+    border: none;
+    box-shadow: 0px 15px 50px #0000009e;
+}
+
+.cards:hover img{
+    border-radius: 10px;
+    box-shadow: 0px 15px 50px #0000009e;
+}
+
+
+.card2{
+    animation: slide-fade-in both;
+    animation-timeline: view();
+    animation-range: contain 0% contain 50%;
+    border-radius:10px;
+    box-shadow: 0px 8px 20px #00000022;
+    color:#fff;
+    width:600px;
+    height:450px;
+    overflow:hidden;
+    display:flwx;
+    justify-items: center;
+    align-items: center;
+    grid-column-start: c;
+    grid-column-end: d;
+
+    box-sizing: border-box;
+    transition: all 0.5s;
+    text-align: right;
+    
+}
+
+.card2 .img{
+    text-align: right;
+    float:right;
+}
+
+.card2:hover {
+    width: 1200px;
+    border: none;
+    box-shadow: 0px 15px 50px #0000009e;
+}
+
+.cards img{
+    width: 600px;
+    height: 450px;
+}
+
+.img{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    font-size: 28px;
+    position: relative;
+    transition: all 0.5s;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: none;
+}
+
+.card1:nth-child(1) .img::after {
+    position: absolute;
+    content: '成电的主楼高大雄伟。建筑主体为白色，外观设计典雅，具有对称美感。正面有多个窗户，整齐排列，底层是一排拱形门廊，显得庄重大气。建筑前方有一片修剪整齐的绿化带，增添了生机。在建筑正中央的旗杆上，飘扬着一面鲜艳的五星红旗，给整个场景增添了庄严的氛围。背景是开阔的天空，使建筑显得更加雄伟。';
+    /* 宽度随着内容自适应 */
+    width: 500px;
+    /* 文字不换行 */
+    word-break: break-all;
+    /* 设置伪元素文字大小为中等大小 */
+    font-size: 100%;
+    left: 650px;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+
+
+.card2:nth-child(2) .img::after {
+    position: absolute;
+    content: '沙河的主楼是一栋浅黄色的欧式建筑，建筑风格典雅，窗户设计精致。建筑周围被树木环绕，左侧的银杏树叶子已经变成金黄色，象征着秋天的到来，而右侧的树木仍保留着绿色。背景中可以看到几栋现代高楼。整个画面色彩丰富，展现了主楼和银杏相辅相成的美丽景象。';
+    /* 宽度随着内容自适应 */
+    width: 500px;
+    /* 文字不换行 */
+    word-break: break-all;
+    /* 设置伪元素文字大小为中等大小 */
+    font-size: 100%;
+    right: 650px;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(3) .img::after {
+    position: absolute;
+    content: '沙河校区的第二教学楼与秋日银杏树的美妙结合。建筑的墙面呈浅米色，略显陈旧，墙皮有脱落的痕迹。窗户整齐排列，玻璃反射着外面的景色。画面中最引人注目的是金黄色的银杏树叶，它们从画面的上方和右侧垂下，形成了一道自然的帘幕。树叶在阳光的照耀下显得格外明亮，给人一种温暖而宁静的感觉，仿佛将秋日的美好定格在了这一刻。';
+    /* 宽度随着内容自适应 */
+    width: 500px;
+    /* 文字不换行 */
+    word-break: break-all;
+    /* 设置伪元素文字大小为中等大小 */
+    font-size: 100%;
+    left: 650px;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+
+/* 通用部分 */
+ico{
+    float: left;
+    margin-left:2%;
+    margin-top:2%
+}
+p.header{
+    float: left;
+}
+
+
+ico>img{
+    padding:0 0 auto auto;
+    width:200px;
+    display:block;
+    
+}
+
+.header{
+    font-size:150%;
+    margin-top:1%;
+    font-family: guifanzi;
+}
+
+@font-face{
+    font-family:fangzheng;
+    src:url('../fonts/方正字迹-吕建德行楷简体.ttf');
+    
+  }
+@font-face {
+    font-family: agaea;
+    src:url('../fonts/AGaramondPro-Regular.otf');
+}
+
+@font-face {
+    font-family: guifanzi;
+    src: url('../fonts/博洋规范字3500.TTF');
+}
+
+@font-face{
+    font-family: kaiti;
+    src:url('../fonts/方正苏新诗柳楷简体.TTF')
+}
+
+/* 以下是页签的样式 */
+.item {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    height: 60px;
+    /* 手风琴效果就是鼠标悬浮宽度过渡 */
+    width: 60px;
+    margin-top: 1%;
+    margin-right:1%;
+    /* 超出隐藏，因为要把伪元素文字遮挡住 */
+    overflow: hidden;
+    background: #fff;
+    border-radius: 30px;
+    box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.24);
+    transition: all 0.5s;
+    float:right;
+}
+
+.icon button{
+    border: none;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.item:hover {
+    width: 180px;
+    border: none;
+}
+
+/* 悬浮加背景色 */
+.first:hover .icon {
+    background-color: rgb(192, 246, 255);
+}
+
+.second:hover .icon {
+    background-color: pink;
+}
+
+.third:hover .icon {
+    background-color: rgb(188, 212, 192);
+}
+
+.fouth:hover .icon {
+    background-color: #e9e9e9;
+}
+
+.icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 30px;
+    font-size: 28px;
+    position: relative;
+    transition: all 0.5s;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: none;
+}
+
+.icon::before{
+    content: '';
+            height: 1px;
+            background: black;
+            /* 伪元素默认样式 display: inline;所以需要转成inline-block宽高才会生效 */
+            display: inline-block;
+            /* 通过定位使下划线在最低层 */
+            position: absolute;
+            bottom: 15px;
+            left:72px;
+            width: 0;
+            /* 加上一个过渡效果，使之丝滑一些 */
+            transition: width 0.36s;
+            
+}
+
+.icon:hover::before {
+    /* 悬浮时候，让下划线伪元素宽度变成100%即可出现效果 */
+    width: 90px;
+}
+
+.icon img{
+    width: 40px;
+    height: 40px;
+}
+
+
+/* 通过伪元素添加内容介绍文字 */
+.item:nth-child(1) .icon::after {
+    position: absolute;
+    content: '个人中心';
+    /* 宽度随着内容自适应 */
+    width: fit-content;
+    /* 文字不换行 */
+    word-break: keep-all;
+    /* 设置伪元素文字大小为中等大小 */
+    font-size: 80%;
+    left: 72px;
+    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+}
+
+.item:nth-child(2) .icon::after {
+    position: absolute;
+    content: '文创产品';
+    width: fit-content;
+    word-break: keep-all;
+    font-size: 80%;
+    left: 72px;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+}
+
+.item:nth-child(3) .icon::after {
+    position: absolute;
+    content: '校园风景';
+    width: fit-content;
+    word-break: keep-all;
+    font-size: 80%;
+    left: 72px;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family:kaiti;
+}
+
+.item:nth-child(4) .icon::after {
+    position: absolute;
+    content: '预约管理';
+    width: fit-content;
+    word-break: keep-all;
+    font-size: 80%;
+    left: 72px;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family:kaiti;
+}
