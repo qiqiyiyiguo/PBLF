@@ -61,6 +61,7 @@ body{
     width: 1200px;
     border: none;
     box-shadow: 0px 15px 50px #0000009e;
+    transform: scale(1.1,1.1);
 }
 
 .cards:hover img{
@@ -119,36 +120,65 @@ body{
     pointer-events: none;
 }
 
+.mask{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(78, 78, 78, 0.747);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    border-radius: 10px;
+}
+
+.card1:hover .mask{
+    opacity: 1;
+    word-break: keep-all;
+    font-size: 300%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#ffffff;
+    text-align: center;
+    padding-top: 180px;
+}
+
+.card2:hover .mask{
+    opacity: 1;
+    word-break: keep-all;
+    font-size: 300%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#ffffff;
+    text-align: center;
+    padding-top: 180px;
+}
+
 .card1:nth-child(1) .img::after {
     position: absolute;
     content: '成电的主楼高大雄伟。建筑主体为白色，外观设计典雅，具有对称美感。正面有多个窗户，整齐排列，底层是一排拱形门廊，显得庄重大气。建筑前方有一片修剪整齐的绿化带，增添了生机。在建筑正中央的旗杆上，飘扬着一面鲜艳的五星红旗，给整个场景增添了庄严的氛围。背景是开阔的天空，使建筑显得更加雄伟。';
-    /* 宽度随着内容自适应 */
     width: 500px;
-    /* 文字不换行 */
     word-break: break-all;
-    /* 设置伪元素文字大小为中等大小 */
     font-size: 100%;
     left: 650px;
-    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
     pointer-events: auto;
     cursor: pointer;
     font-family: kaiti;
     color:#050505
+    
 }
+
 
 
 
 .card2:nth-child(2) .img::after {
     position: absolute;
     content: '沙河的主楼是一栋浅黄色的欧式建筑，建筑风格典雅，窗户设计精致。建筑周围被树木环绕，左侧的银杏树叶子已经变成金黄色，象征着秋天的到来，而右侧的树木仍保留着绿色。背景中可以看到几栋现代高楼。整个画面色彩丰富，展现了主楼和银杏相辅相成的美丽景象。';
-    /* 宽度随着内容自适应 */
     width: 500px;
-    /* 文字不换行 */
     word-break: break-all;
-    /* 设置伪元素文字大小为中等大小 */
     font-size: 100%;
     right: 650px;
-    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
     pointer-events: auto;
     cursor: pointer;
     font-family: kaiti;
@@ -159,14 +189,10 @@ body{
 .card1:nth-child(3) .img::after {
     position: absolute;
     content: '沙河校区的第二教学楼与秋日银杏树的美妙结合。建筑的墙面呈浅米色，略显陈旧，墙皮有脱落的痕迹。窗户整齐排列，玻璃反射着外面的景色。画面中最引人注目的是金黄色的银杏树叶，它们从画面的上方和右侧垂下，形成了一道自然的帘幕。树叶在阳光的照耀下显得格外明亮，给人一种温暖而宁静的感觉，仿佛将秋日的美好定格在了这一刻。';
-    /* 宽度随着内容自适应 */
     width: 500px;
-    /* 文字不换行 */
     word-break: break-all;
-    /* 设置伪元素文字大小为中等大小 */
     font-size: 100%;
     left: 650px;
-    /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
     pointer-events: auto;
     cursor: pointer;
     font-family: kaiti;
