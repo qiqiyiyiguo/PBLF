@@ -5,6 +5,12 @@
 #include<ctype.h>
 #define LEN 20
 #define NUMBER 12
+#define MAX_SPOTS 100
+#define MAX_NAME_LEN 50
+#define MAX_USERS 100
+#define IDNUMBER 6
+
+
 typedef struct node{
   	char userName[LEN];
   	int startHour;
@@ -15,8 +21,10 @@ typedef struct node{
   	int phonenumber[NUMBER];
   	struct node *next;
   }Appointment;
+  
   Appointment *head;
-  int arrayMonth={1,2,3,4,5,6,7,8,9,10,11,12};
+  
+  
 void fun(char *p){
 	int k=0;
 	while(*p){
@@ -31,12 +39,27 @@ void fun(char *p){
 	*p++;
 	}
 }
+
 Bool is_leapYear(int year){
 	if(year%4==0&&year%400==0)
 	return ture;
 	else 
 	return false;
 }
+void registerUser(User *p){     //×¢²áÓÃ»§ 
+	if(userNumber>=MAX_NUMBERS){
+		printf("Users limit reached.\n");
+		return;
+	}
+	printf("Enter your name:");
+	scanf("%s",p->user_name);
+	printf("\n");
+    printf("Enter your ID:");
+    scanf("%d",p->user_id);
+    userNumber++;
+    printf("User registered successfully.\n");
+}
+
 void insert_appointment(Appointment *p){    //Ô¤Ô¼ 
 	Appointment2 *head=(Appointment2 *)malloc(sizeof(Appointment));
 	if(head==NULL){
@@ -82,6 +105,7 @@ void insert_appointment(Appointment *p){    //Ô¤Ô¼
 
 								   
 }
+
 void check_appointment(Appointment *p,int month,int day,int year){   //¼ì²éÔ¤Ô¼ÊÇ·ñ³É¹¦ 
 
 	if(p->month>=1&&p->month<=12&&startHour>=8&&p->startHour<=16&&p->endHour>=9&&p->endHour<=17&&p->day){
@@ -117,6 +141,7 @@ void check_appointment(Appointment *p,int month,int day,int year){   //¼ì²éÔ¤Ô¼Ê
 		}
 	}	
 }
+
 bool arraysEqual(int arr1[],int arr2[]){  //judge arrays are equal
 	int len1=strlen(arr1);
 	int len2=strlen(arr2);
@@ -127,7 +152,8 @@ bool arraysEqual(int arr1[],int arr2[]){  //judge arrays are equal
 	return false;}
 	}
 	return true;
-} 
+}  
+
 void cancel_appointment(Appointment *p){    //È¡ÏûÔ¤Ô¼ 
 	 int i;
 	 Appointment *tmp=(Appointment *)malloc(sizeof(Appointment));
@@ -156,6 +182,115 @@ void cancel_appointment(Appointment *p){    //È¡ÏûÔ¤Ô¼
 }    
 new_node->next=tmp->next;        //i--new_node,i+1--tmp;
 free(tmp);
+} 
+
+
+//·Ö¾°µãÔ¤Ô¼
+
+	typedef struct {
+	char spot_name[MAX_NAME_LEN];
+	int booked;    
+	int capacity;
+	}Spot; 
+    typedef struct{
+  	char user_name[LEN];
+	char user_id[IDNUMBER];
+	}User;
+	Spot spots[MAX_SPOTS];
+	User user[MAX_USERS]; 
+	int spotNumber=0;
+	int userNumber=0;
+	
+void registerUser(){     //×¢²áÓÃ»§ 
+	if(userNumber>=MAX_NUMBERS){               //ÏÞÖÆ×¢²áÓÃ»§ 
+		printf("Users limit reached.\n");
+		return;
+	}
+	printf("Enter your name:");
+	scanf("%s",user->user_name);
+	printf("\n");
+    printf("Enter your ID:");
+    scanf("%d",user->user_id);
+    userNumber++;
+    printf("User registered successfully.\n");
+}
+
+void add_spot(){                    //¹ÜÀíÔ± 
+	if(spotNumber>=MAX_SPOTS){
+		printf("Sight limit reached.\n");
+		return; 
+	}
+	printf("Enter sight name:");
+	scanf("%s",spots[spotNumber].spot_name);
+	printf("\n");
+	printf("Enter the capacity of the campus:");
+	scanf("%d",&spots[spotNumber].capacity);
+	spots[spotNumber].booked=0;
+	spotNumber++;
+	printf("Sight added successfully.\n"); 
+}
+
+void spot_appointment(){      //¿Í»§¶ËÔ¤Ô¼ 
+	char Sightname[LEN];
+	long int ID;
+	int i,IDfound=0,Sightfound=0;
+	printf("Enter the ID of user:");
+	scanf("%ld",&ID);
+	printf("\n");
+	for(i=0;i<userNumber;i++){
+	if(user->user_id==ID){
+	  printf("Find the user!\n");
+	  IDfound=1;
+	  break;
+	}
+}if(!IDfound){
+	printf("Not find such a user!\n");
+	return;
+} 
+    printf("Enter the name of sight:");
+    scanf("%s",Sightname);
+    printf("\n");
+   for(i=0;i<MAX_SPOTS;i++){
+   	if(strcmp(spots->spot_name,Sightname)==0){
+   	printf("Find the sight!\n");
+   	Sightfound=1;
+   	break;
+	   }
+   }
+if(!Sightfound){
+	printf("Not find the sight!\n");
+	return;
+}
+    (spots->booked)++;
+    printf("Booking the sight successfully!\n");
+    
+void checkBooking(){        //²éÑ¯Ô¤Ô¼ 
+	char sightname[MAX_NAME_LEN];
+	scanf("%s",sightname);
+	int i;
+	for(i=0;i<spotNumber;i++){
+		if(strcmp(spots[i].spot_name,sightname)==0){
+			printf("¾°µãÃû³Æ£º%s ,Ô¤Ô¼×´Ì¬:%s\n",spots[i].spot_name,
+			spots[i].spot_name? "ÒÑÔ¤Ô¼":"Î´Ô¤Ô¼");
+			printf("Booked: %d/%d\n",spots->booked,spots->capacity);
+			return;
+		}
+	}
+	printf("Not find the sight£¡");
+}
+
+void modify_spot(){                    //ÐÞ¸ÄÔ¤Ô¼×´Ì¬ 
+	char name[MAX_NAME_LEN];
+	scanf("%s",name);
+    int i;
+    for(i=0;i<spotNumber;i++){
+    	if(strcmp(spots[i].spot_name,name)==0){
+    	printf("¾°µãÃû³Æ:%s ,Ô¤Ô¼×´Ì¬£º%s\n",spots[i].spot_name,
+		spot[i].booked?"Î´Ô¤Ô¼":"ÒÑÔ¤Ô¼");  
+		return; 
+		}
+	}
+	printf("Î´ÕÒµ½¸Ã¾°µã!");
 }
    
      
