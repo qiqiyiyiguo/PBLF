@@ -1,7 +1,0 @@
-﻿  user.ai.c
-D:\Users\LENOVO\20241204PBLF\聊天室（多线程）\user.ai\user.ai.c(31,17): warning C4477: “scanf_s”: 格式字符串“%1023s”需要类型“unsigned int”的参数，但可变参数 2 拥有了类型“size_t”
-      D:\Users\LENOVO\20241204PBLF\聊天室（多线程）\user.ai\user.ai.c(31,17):
-      此参数用作缓冲区大小
-  
-D:\Users\LENOVO\20241204PBLF\聊天室（多线程）\user.ai\user.ai.c(33,38): warning C4267: “函数”: 从“size_t”转换到“int”，可能丢失数据
-  user.ai.vcxproj -> D:\Users\LENOVO\20241204PBLF\聊天室（多线程）\user.ai\x64\Debug\user.ai.exe

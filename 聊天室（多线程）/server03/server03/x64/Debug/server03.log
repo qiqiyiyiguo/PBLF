@@ -1,7 +1,0 @@
-﻿  server03.c
-D:\Users\LENOVO\20241204PBLF\PBLF-develop\聊天室自学\server03\server03.c(18,17): warning C4477: “scanf_s”: 格式字符串“%1023s”需要类型“unsigned int”的参数，但可变参数 2 拥有了类型“size_t”
-      D:\Users\LENOVO\20241204PBLF\PBLF-develop\聊天室自学\server03\server03.c(18,17):
-      此参数用作缓冲区大小
-  
-D:\Users\LENOVO\20241204PBLF\PBLF-develop\聊天室自学\server03\server03.c(29,1): warning C4716: “thread_func”: 必须返回一个值
-  server03.vcxproj -> D:\Users\LENOVO\20241204PBLF\PBLF-develop\聊天室自学\server03\x64\Debug\server03.exe
