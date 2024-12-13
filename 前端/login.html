@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>个人中心</title>
     <link href="styles/login.css" rel="stylesheet" />
-    <script src="scripts/login.js"></script>
 </head>
 
 <body>
@@ -45,6 +44,51 @@
         </p>
       </header>
     </div>
-</body>
 
+
+
+
+
+    <div class="shell">
+      <div class="container a-container" id="a-container">
+          <form action="" method="" class="form" id="a-form">
+              <h2 class="form_title title">创建账号</h2>
+              <span class="form_span">使用手机注册</span>
+              <input type="text" class="form_input" placeholder="Name" id="Name">
+              <input type="text" class="form_input" placeholder="PhoneNumber" id="PhoneNumber">
+              <input type="password" class="form_input" placeholder="Password" id="Password"/>
+              <button class="form_button button submit" onclick="JsonAdd()">SIGN UP</button>
+              <div id="data-container"></div>
+          </form>
+      </div>
+
+      <div class="container b-container" id="b-container">
+          <form action="" method="" class="form" id="b-form">
+              <h2 class="form_title title">登入账号</h2>
+              <span class="form_span">使用手机号登录</span>
+              <input type="text" class="form_input" placeholder="PhoneNumber" id="PhoneNumber">
+              <input type="password" class="form_input" placeholder="Password" id="Password" />
+              <button onclick="JsonDelete()" class="form_link">注销账号</button>
+              <button class="form_button button submit" onclick = "checkData()">SIGN IN</button>
+          </form>
+      </div>
+
+      <div class="switch" id="switch-cnt">
+          <div class="switch_circle"></div>
+          <div class="switch_circle switch_circle-t"></div>
+          <div class="switch_container" id="switch-c1">
+              <h2 class="switch_title title" style="letter-spacing: 0;">WELCOME TO UESTC</h2>
+              <p class="switch_description description">已有账号？点此登录</p>
+              <button onclick="JsonCheck()" class="switch_button button switch-btn">SIGN IN</button>
+          </div>
+
+          <div class="switch_container is-hidden" id="switch-c2">
+              <h2 class="switch_title title" style="letter-spacing: 0;">WELCOME TO UESTC</h2>
+              <p class="switch_description description">没有账号？点此注册</p>
+              <button class="switch_button button switch-btn">SIGN UP</button>
+          </div>
+      </div>
+  </div>
+  <script src="scripts/login.js"></script>
+</body>
 </html>
