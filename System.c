@@ -8,8 +8,16 @@
 #include <MsXml6.h>
 #include <assert.h>
 #include <time.h>
-#include <Windows.h>
+#include <Windows.h>#include <stdlib.h>
+#include <microhttpd.h>
+// 用户数据库，简单示例
+#define DB_FILE "users.txt"
+
+
+#define PORT 5500
+
 #include <sys/stat.h>
+
 #define MAX_LEN 100
 
 int check_user(const char *username, const char *password) {
@@ -52,6 +60,100 @@ typedef struct list {//定义了一个名为list的结构体，用于存储链表的头节点和长度
 list *vis_list; //游客链表
 char filename[] = "visitor.txt"; //保存游客信息的文件名
 char password[] = "123456"; //修改信息的密码
+
+typedef struct {
+    char username[50];
+    char password[50];
+} User;
+
+// 保存用户数据到文件
+int save_user(const User *user) {
+    FILE *file = fopen(DB_FILE, "a");
+    if (file == NULL) {
+        return -1;
+    }
+    fprintf(file, "%s,%s\n", user->username, user->password);
+    fclose(file);
+    return 0;
+}
+
+// 检查用户是否存在
+int check_user(const User *user) {
+    FILE *file = fopen(DB_FILE, "r");
+    if (file == NULL) {
+        return -1;
+    }
+
+    char line[100];
+    while (fgets(line, sizeof(line), file)) {
+        char stored_username[50], stored_password[50];
+        sscanf(line, "%49[^,],%49s", stored_username, stored_password);
+        if (strcmp(stored_username, user->username) == 0 &&
+            strcmp(stored_password, user->password) == 0) {
+            fclose(file);
+            return 0; // 用户存在，密码正确
+        }
+    }
+    fclose(file);
+    return -1; // 用户不存在或密码错误
+}
+
+// 处理HTTP请求
+static int answer_to_request(void *cls, struct MHD_Connection *connection, const char *url, const char *method,
+                             const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls) {
+    if (strcmp(method, "POST") == 0) {
+        char *response = NULL;
+        int ret = -1;
+
+        // 解析POST数据
+        if (upload_data_size != NULL && *upload_data_size > 0) {
+            User user;
+            sscanf(upload_data, "username=%49[^&]&password=%49s", user.username, user.password);
+
+            if (strstr(url, "/login") != NULL) {
+                // 登录操作
+                if (check_user(&user) == 0) {
+                    response = "Login successful!";
+                    ret = 200;
+                } else {
+                    response = "Invalid username or password!";
+                    ret = 403; // 登录失败
+                }
+            } else if (strstr(url, "/register") != NULL) {
+                // 注册操作
+                if (save_user(&user) == 0) {
+                    response = "Registration successful!";
+                    ret = 200;
+                } else {
+                    response = "Error saving user!";
+                    ret = 500; // 注册失败
+                }
+            }
+        }
+
+        if (response != NULL) {
+            struct MHD_Response *mhd_response = MHD_create_response_from_buffer(strlen(response), (void*)response, MHD_RESPMEM_PERSISTENT);
+            MHD_add_response_header(mhd_response, "Content-Type", "text/plain");
+            int ret_code = MHD_queue_response(connection, ret, mhd_response);
+            MHD_destroy_response(mhd_response);
+            return ret_code;
+        }
+    }
+    return MHD_NO;
+}
+
+int main() {
+    struct MHD_Daemon *daemon;
+
+    daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, PORT, NULL, NULL, &answer_to_request, NULL, MHD_OPTION_END);
+    if (NULL == daemon) {
+        return 1;
+    }
+    printf("Server started on port %d\n", PORT);
+    getchar(); // 等待用户按键以关闭服务器
+    MHD_stop_daemon(daemon);
+    return 0;
+}
 
 //函数声明
 void init_list(); //初始化链表
