@@ -60,7 +60,7 @@ let switchCtn = document.querySelector("#switch-cnt");
     // 创建XMLHttpRequest对象
     const xhr = new XMLHttpRequest();
     // 设置POST请求，并指定后端接收数据的URL
-    xhr.open("POST", "../../游客管理系统.c", true);
+    xhr.open("POST", "http://127.0.0.1:5500/%E6%B8%B8%E5%AE%A2%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F.c", true);
     // 设置请求头，指定发送的数据类型为JSON
     xhr.setRequestHeader("Content-Type", "application/json");
 
