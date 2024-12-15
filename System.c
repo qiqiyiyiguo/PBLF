@@ -2,87 +2,162 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-//å®šä¹‰äº†ä¸€ä¸ªåä¸ºvisitorçš„ç»“æ„ä½“ï¼Œç”¨äºå­˜å‚¨æ¸¸å®¢çš„ä¿¡æ¯
+
+#define COBJMACROS
+#include <stdio.h>
+#include <MsXml6.h>
+#include <assert.h>
+#include <time.h>
+#include <Windows.h>
+#include <sys/stat.h>
+#define MAX_LEN 100
+
+int check_user(const char *username, const char *password) {
+    FILE *file = fopen("users.txt", "r");
+    if (file == NULL) {
+        return 0;  // ÎÄ¼ş´ò¿ªÊ§°Ü
+    }
+
+    char stored_username[MAX_LEN], stored_password[MAX_LEN];
+    while (fscanf(file, "%s %s", stored_username, stored_password) != EOF) {
+        if (strcmp(stored_username, username) == 0 && strcmp(stored_password, password) == 0) {
+            fclose(file);
+            return 1;  // ÓÃ»§ÃûºÍÃÜÂëÆ¥Åä
+        }
+    }
+
+    fclose(file);
+    return 0;  // ÓÃ»§Ãû»òÃÜÂë´íÎó
+}
+
+
+
+//¶¨ÒåÁËÒ»¸öÃûÎªvisitorµÄ½á¹¹Ìå£¬ÓÃÓÚ´æ´¢ÓÎ¿ÍµÄĞÅÏ¢
 typedef struct visitor {
-    char id[20]; //èº«ä»½è¯å·
-    char name[20]; //å§“å
-    char sex[2]; //æ€§åˆ«
-    int age; //å¹´é¾„
-    char remark[100]; //å¤‡æ³¨
-    struct visitor *next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆ
+    char id[20]; //Éí·İÖ¤ºÅ
+    char name[20]; //ĞÕÃû
+    char sex[2]; //ĞÔ±ğ
+    int age; //ÄêÁä
+    char remark[100]; //±¸×¢
+    struct visitor *next; //Ö¸ÏòÏÂÒ»¸ö½ÚµãµÄÖ¸Õë
 } visitor;
 
-//å®šä¹‰é“¾è¡¨ç»“æ„ä½“
-typedef struct list {//å®šä¹‰äº†ä¸€ä¸ªåä¸ºlistçš„ç»“æ„ä½“ï¼Œç”¨äºå­˜å‚¨é“¾è¡¨çš„å¤´èŠ‚ç‚¹å’Œé•¿åº¦
-    visitor *head; //æŒ‡å‘é“¾è¡¨å¤´èŠ‚ç‚¹çš„æŒ‡é’ˆ
-    int size; //é“¾è¡¨çš„é•¿åº¦
+//¶¨ÒåÁ´±í½á¹¹Ìå
+typedef struct list {//¶¨ÒåÁËÒ»¸öÃûÎªlistµÄ½á¹¹Ìå£¬ÓÃÓÚ´æ´¢Á´±íµÄÍ·½ÚµãºÍ³¤¶È
+    visitor *head; //Ö¸ÏòÁ´±íÍ·½ÚµãµÄÖ¸Õë
+    int size; //Á´±íµÄ³¤¶È
 } list;
 
-//å®šä¹‰å…¨å±€å˜é‡
-list *vis_list; //æ¸¸å®¢é“¾è¡¨
-char filename[] = "visitor.txt"; //ä¿å­˜æ¸¸å®¢ä¿¡æ¯çš„æ–‡ä»¶å
-char password[] = "123456"; //ä¿®æ”¹ä¿¡æ¯çš„å¯†ç 
+//¶¨ÒåÈ«¾Ö±äÁ¿
+list *vis_list; //ÓÎ¿ÍÁ´±í
+char filename[] = "visitor.txt"; //±£´æÓÎ¿ÍĞÅÏ¢µÄÎÄ¼şÃû
+char password[] = "123456"; //ĞŞ¸ÄĞÅÏ¢µÄÃÜÂë
 
-//å‡½æ•°å£°æ˜
-void init_list(); //åˆå§‹åŒ–é“¾è¡¨
-void input_info(); //å½•å…¥æ¸¸å®¢ä¿¡æ¯
-void display_info(); //æ˜¾ç¤ºæ¸¸å®¢ä¿¡æ¯
-void save_info(); //ä¿å­˜æ¸¸å®¢ä¿¡æ¯
-void delete_info(); //åˆ é™¤æ¸¸å®¢ä¿¡æ¯
-void modify_info(); //ä¿®æ”¹æ¸¸å®¢ä¿¡æ¯
-void search_info(); //æŸ¥è¯¢æ¸¸å®¢ä¿¡æ¯
-void free_list(); //é‡Šæ”¾é“¾è¡¨
-visitor *create_node(); //åˆ›å»ºèŠ‚ç‚¹
-void insert_node(visitor *node); //æ’å…¥èŠ‚ç‚¹
-void delete_node(char *id); //åˆ é™¤èŠ‚ç‚¹
-visitor *find_node(char *id); //æŸ¥æ‰¾èŠ‚ç‚¹
-void print_node(visitor *node); //æ‰“å°èŠ‚ç‚¹
-void print_menu(); //æ‰“å°èœå•
-int check_password(); //æ£€æŸ¥å¯†ç 
+//º¯ÊıÉùÃ÷
+void init_list(); //³õÊ¼»¯Á´±í
+void input_info(); //Â¼ÈëÓÎ¿ÍĞÅÏ¢
+void display_info(); //ÏÔÊ¾ÓÎ¿ÍĞÅÏ¢
+void save_info(); //±£´æÓÎ¿ÍĞÅÏ¢
+void delete_info(); //É¾³ıÓÎ¿ÍĞÅÏ¢
+void modify_info(); //ĞŞ¸ÄÓÎ¿ÍĞÅÏ¢
+void search_info(); //²éÑ¯ÓÎ¿ÍĞÅÏ¢
+void free_list(); //ÊÍ·ÅÁ´±í
+visitor *create_node(); //´´½¨½Úµã
+void insert_node(visitor *node); //²åÈë½Úµã
+void delete_node(char *id); //É¾³ı½Úµã
+visitor *find_node(char *id); //²éÕÒ½Úµã
+void print_node(visitor *node); //´òÓ¡½Úµã
+void print_menu(); //´òÓ¡²Ëµ¥
+int check_password(); //¼ì²éÃÜÂë
 void modify_password(char *password);
-int check_password_strength(char*password);//æ£€æŸ¥å¯†ç å¼ºåº¦
+int check_password_strength(char*password);//¼ì²éÃÜÂëÇ¿¶È
 
-//ä¸»å‡½æ•°
+//Ö÷º¯Êı
 int main() {
+
+     char *data;
+    char username[MAX_LEN], password[MAX_LEN];
+    
+    // »ñÈ¡POSTÇëÇóµÄ±íµ¥Êı¾İ
+    data = getenv("QUERY_STRING");
+    if (data != NULL) {
+        sscanf(data, "username=%s&password=%s", username, password);
+        
+        // URL ½âÂë
+        for (int i = 0; username[i]; i++) if (username[i] == '+') username[i] = ' ';
+        for (int i = 0; password[i]; i++) if (password[i] == '+') password[i] = ' ';
+        
+        // ÑéÖ¤ÓÃ»§
+        if (check_user(username, password)) {
+            printf("Content-Type: text/html\n\n");
+            printf("<h1>µÇÂ¼³É¹¦£¡</h1>");
+        } else {
+            printf("Content-Type: text/html\n\n");
+            printf("<h1>ÓÃ»§Ãû»òÃÜÂë´íÎó</h1>");
+        }
+    } else {
+        printf("Content-Type: text/html\n\n");
+        printf("<h1>±íµ¥Ìá½»Ê§°Ü</h1>");
+    }
+    
+    return 0;
+
+     // ¼ì²éÎÄ¼şÈ¨ÏŞ
+    struct stat file_stat;
+    if (stat("/usr/lib/cgi-bin/login.cgi", &file_stat) == 0) {
+        printf("File permission: %o\n", file_stat.st_mode);
+    } else {
+        perror("Error getting file status");
+    }
+
+    // ÉèÖÃÎÄ¼şÈ¨ÏŞ
+    if (chmod("/usr/lib/cgi-bin/login.cgi", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0) {
+        printf("File permission changed successfully.\n");
+    } else {
+        perror("Error changing file permission");
+    }
+
+    return 0;
+
 
     if(check_password())
     {   
         check_password_strength(password);
-        char choice; //ç”¨æˆ·é€‰æ‹©çš„åŠŸèƒ½é¡¹
-        init_list(); //åˆå§‹åŒ–é“¾è¡¨
+        char choice; //ÓÃ»§Ñ¡ÔñµÄ¹¦ÄÜÏî
+        init_list(); //³õÊ¼»¯Á´±í
         while (1) {
-            print_menu(); //æ‰“å°èœå•
-            printf("è¯·é€‰æ‹©ç³»ç»ŸåŠŸèƒ½é¡¹ï¼š\n");
-            scanf("%c", &choice); //è¾“å…¥é€‰æ‹©
-            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+            print_menu(); //´òÓ¡²Ëµ¥
+            printf("ÇëÑ¡ÔñÏµÍ³¹¦ÄÜÏî£º\n");
+            scanf("%c", &choice); //ÊäÈëÑ¡Ôñ
+            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
             switch (choice) {
-                case 'a': //å½•å…¥ä¿¡æ¯
+                case 'a': //Â¼ÈëĞÅÏ¢
                     input_info();
                     break;
-                case 'b': //æ˜¾ç¤ºä¿¡æ¯
+                case 'b': //ÏÔÊ¾ĞÅÏ¢
                     display_info();
                     break;
-                case 'c': //ä¿å­˜ä¿¡æ¯
+                case 'c': //±£´æĞÅÏ¢
                     save_info();
                     break;
-                case 'd': //åˆ é™¤ä¿¡æ¯
+                case 'd': //É¾³ıĞÅÏ¢
                     delete_info();
                     break;
-                case 'e': //ä¿®æ”¹ä¿¡æ¯
+                case 'e': //ĞŞ¸ÄĞÅÏ¢
                     modify_info();
                     break;
-                case 'f': //æŸ¥è¯¢ä¿¡æ¯
+                case 'f': //²éÑ¯ĞÅÏ¢
                     search_info();
                     break;
-                case 'g': //é€€å‡ºç³»ç»Ÿ
-                    free_list(); //é‡Šæ”¾é“¾è¡¨
-                    printf("æ„Ÿè°¢æ‚¨ä½¿ç”¨æœ¬ç³»ç»Ÿï¼Œå†è§ï¼\n");
-                    return 0; //ç»“æŸç¨‹åº
-                case 'h': //ä¿®æ”¹å¯†ç 
+                case 'g': //ÍË³öÏµÍ³
+                    free_list(); //ÊÍ·ÅÁ´±í
+                    printf("¸ĞĞ»ÄúÊ¹ÓÃ±¾ÏµÍ³£¬ÔÙ¼û£¡\n");
+                    return 0; //½áÊø³ÌĞò
+                case 'h': //ĞŞ¸ÄÃÜÂë
                     modify_password(password);
                     break;
-                default: //æ— æ•ˆé€‰æ‹©
-                    printf("\033[91mæ— æ•ˆçš„é€‰æ‹©ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\033[0m\n");
+                default: //ÎŞĞ§Ñ¡Ôñ
+                    printf("\033[91mÎŞĞ§µÄÑ¡Ôñ£¬ÇëÖØĞÂÊäÈë¡£\033[0m\n");
                     break;
             }
             break;
@@ -91,333 +166,333 @@ int main() {
 }
 
 
-//åˆ›å»ºèŠ‚ç‚¹
+//´´½¨½Úµã
 visitor *create_node() {
-    visitor *node = (visitor *)malloc(sizeof(visitor)); //åˆ†é…å†…å­˜ç©ºé—´
-    if (node == NULL) { //åˆ†é…å¤±è´¥
-        printf("å†…å­˜åˆ†é…å¤±è´¥ï¼Œæ— æ³•åˆ›å»ºèŠ‚ç‚¹ã€‚\n");
-        exit(1); //é€€å‡ºç¨‹åº
+    visitor *node = (visitor *)malloc(sizeof(visitor)); //·ÖÅäÄÚ´æ¿Õ¼ä
+    if (node == NULL) { //·ÖÅäÊ§°Ü
+        printf("ÄÚ´æ·ÖÅäÊ§°Ü£¬ÎŞ·¨´´½¨½Úµã¡£\n");
+        exit(1); //ÍË³ö³ÌĞò
     }
-    node->next = NULL; //æŒ‡é’ˆä¸ºç©º
-    return node; //è¿”å›èŠ‚ç‚¹
+    node->next = NULL; //Ö¸ÕëÎª¿Õ
+    return node; //·µ»Ø½Úµã
 }
 
-//åˆå§‹åŒ–é“¾è¡¨
+//³õÊ¼»¯Á´±í
 void init_list() {
-    vis_list = (list *)malloc(sizeof(list)); //åˆ†é…å†…å­˜ç©ºé—´
-    if (vis_list == NULL) { //åˆ†é…å¤±è´¥
-        printf("å†…å­˜åˆ†é…å¤±è´¥ï¼Œæ— æ³•åˆå§‹åŒ–é“¾è¡¨ã€‚\n");
-        exit(1); //é€€å‡ºç¨‹åº
+    vis_list = (list *)malloc(sizeof(list)); //·ÖÅäÄÚ´æ¿Õ¼ä
+    if (vis_list == NULL) { //·ÖÅäÊ§°Ü
+        printf("ÄÚ´æ·ÖÅäÊ§°Ü£¬ÎŞ·¨³õÊ¼»¯Á´±í¡£\n");
+        exit(1); //ÍË³ö³ÌĞò
     }
-    vis_list->head = NULL; //å¤´èŠ‚ç‚¹ä¸ºç©º
-    vis_list->size = 0; //é“¾è¡¨é•¿åº¦ä¸º0
-    FILE *fp = fopen(filename, "r"); //æ‰“å¼€æ–‡ä»¶
-    if (fp == NULL) { //æ‰“å¼€å¤±è´¥
-        printf("æ— æ³•æ‰“å¼€æ–‡ä»¶%sï¼Œå¯èƒ½æ˜¯ç¬¬ä¸€æ¬¡ä½¿ç”¨æœ¬ç³»ç»Ÿã€‚\n", filename);
-        return; //è¿”å›
+    vis_list->head = NULL; //Í·½ÚµãÎª¿Õ
+    vis_list->size = 0; //Á´±í³¤¶ÈÎª0
+    FILE *fp = fopen(filename, "r"); //´ò¿ªÎÄ¼ş
+    if (fp == NULL) { //´ò¿ªÊ§°Ü
+        printf("ÎŞ·¨´ò¿ªÎÄ¼ş%s£¬¿ÉÄÜÊÇµÚÒ»´ÎÊ¹ÓÃ±¾ÏµÍ³¡£\n", filename);
+        return; //·µ»Ø
     }
-    visitor *node; //ä¸´æ—¶èŠ‚ç‚¹
+    visitor *node; //ÁÙÊ±½Úµã
     while (1) {
-        node = create_node(); //åˆ›å»ºèŠ‚ç‚¹
-        if (fscanf(fp, "%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark) == EOF) { //è¯»å–æ–‡ä»¶åˆ°èŠ‚ç‚¹
-            free(node); //é‡Šæ”¾èŠ‚ç‚¹
-            break; //è·³å‡ºå¾ªç¯
+        node = create_node(); //´´½¨½Úµã
+        if (fscanf(fp, "%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark) == EOF) { //¶ÁÈ¡ÎÄ¼şµ½½Úµã
+            free(node); //ÊÍ·Å½Úµã
+            break; //Ìø³öÑ­»·
         }
-        insert_node(node); //æ’å…¥èŠ‚ç‚¹
+        insert_node(node); //²åÈë½Úµã
     }
-    fclose(fp); //å…³é—­æ–‡ä»¶
-    printf("å·²ä»æ–‡ä»¶%sä¸­è¯»å–æ¸¸å®¢ä¿¡æ¯ã€‚\n", filename);
+    fclose(fp); //¹Ø±ÕÎÄ¼ş
+    printf("ÒÑ´ÓÎÄ¼ş%sÖĞ¶ÁÈ¡ÓÎ¿ÍĞÅÏ¢¡£\n", filename);
 }
 
-//æ’å…¥èŠ‚ç‚¹
+//²åÈë½Úµã
 void insert_node(visitor *node) {
-    if (vis_list->head == NULL) { //é“¾è¡¨ä¸ºç©º
-        vis_list->head = node; //å¤´èŠ‚ç‚¹ä¸ºæ–°èŠ‚ç‚¹
-    } else { //é“¾è¡¨ä¸ä¸ºç©º
-        visitor *p = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-        while (p->next != NULL) { //éå†é“¾è¡¨
-            p = p->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+    if (vis_list->head == NULL) { //Á´±íÎª¿Õ
+        vis_list->head = node; //Í·½ÚµãÎªĞÂ½Úµã
+    } else { //Á´±í²»Îª¿Õ
+        visitor *p = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+        while (p->next != NULL) { //±éÀúÁ´±í
+            p = p->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
         }
-        p->next = node; //å°¾èŠ‚ç‚¹çš„æŒ‡é’ˆæŒ‡å‘æ–°èŠ‚ç‚¹
+        p->next = node; //Î²½ÚµãµÄÖ¸ÕëÖ¸ÏòĞÂ½Úµã
     }
-    vis_list->size++; //é“¾è¡¨é•¿åº¦åŠ ä¸€
+    vis_list->size++; //Á´±í³¤¶È¼ÓÒ»
 }
 
 
-//å½•å…¥å­¦ç”Ÿä¿¡æ¯
+//Â¼ÈëÑ§ÉúĞÅÏ¢
 void input_info() {
-    printf("è¯·è¾“å…¥æ¸¸å®¢çš„åŸºæœ¬ä¿¡æ¯ï¼Œä»¥ç©ºæ ¼åˆ†éš”ï¼Œä»¥å›è½¦ç»“æŸã€‚\n");
-    printf("æ ¼å¼ï¼šèº«ä»½è¯å· å§“å æ€§åˆ« å¹´é¾„ å¤‡æ³¨\n");
-    visitor *node = create_node(); //åˆ›å»ºèŠ‚ç‚¹
-    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //è¾“å…¥ä¿¡æ¯åˆ°èŠ‚ç‚¹
-    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-    if (find_node(node->id) != NULL) { //æŸ¥æ‰¾æ˜¯å¦å·²å­˜åœ¨ç›¸åŒå­¦å·çš„èŠ‚ç‚¹
-        printf("è¯¥èº«ä»½è¯å·å·²å­˜åœ¨ï¼Œæ— æ³•å½•å…¥ã€‚\n");
-        free(node); //é‡Šæ”¾èŠ‚ç‚¹
-        return; //è¿”å›
+    printf("ÇëÊäÈëÓÎ¿ÍµÄ»ù±¾ĞÅÏ¢£¬ÒÔ¿Õ¸ñ·Ö¸ô£¬ÒÔ»Ø³µ½áÊø¡£\n");
+    printf("¸ñÊ½£ºÉí·İÖ¤ºÅ ĞÕÃû ĞÔ±ğ ÄêÁä ±¸×¢\n");
+    visitor *node = create_node(); //´´½¨½Úµã
+    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //ÊäÈëĞÅÏ¢µ½½Úµã
+    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+    if (find_node(node->id) != NULL) { //²éÕÒÊÇ·ñÒÑ´æÔÚÏàÍ¬Ñ§ºÅµÄ½Úµã
+        printf("¸ÃÉí·İÖ¤ºÅÒÑ´æÔÚ£¬ÎŞ·¨Â¼Èë¡£\n");
+        free(node); //ÊÍ·Å½Úµã
+        return; //·µ»Ø
     }
-    insert_node(node); //æ’å…¥èŠ‚ç‚¹
-    printf("å·²æˆåŠŸå½•å…¥æ¸¸å®¢ä¿¡æ¯ã€‚\n");
+    insert_node(node); //²åÈë½Úµã
+    printf("ÒÑ³É¹¦Â¼ÈëÓÎ¿ÍĞÅÏ¢¡£\n");
 }
 
-//æ˜¾ç¤ºå­¦ç”Ÿä¿¡æ¯
+//ÏÔÊ¾Ñ§ÉúĞÅÏ¢
 void display_info() {
-    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
-        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥æ˜¾ç¤ºã€‚\n");
-        return; //è¿”å›
+    if (vis_list->size == 0) { //Á´±íÎª¿Õ
+        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔÏÔÊ¾¡£\n");
+        return; //·µ»Ø
     }
-    printf("ä»¥ä¸‹æ˜¯æ‰€æœ‰æ¸¸å®¢çš„åŸºæœ¬ä¿¡æ¯ï¼š\n");
-    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-    while (node != NULL) { //éå†é“¾è¡¨
-        print_node(node); //æ‰“å°èŠ‚ç‚¹
-        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+    printf("ÒÔÏÂÊÇËùÓĞÓÎ¿ÍµÄ»ù±¾ĞÅÏ¢£º\n");
+    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+    while (node != NULL) { //±éÀúÁ´±í
+        print_node(node); //´òÓ¡½Úµã
+        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
     }
 }
 
-//ä¿å­˜å­¦ç”Ÿä¿¡æ¯
+//±£´æÑ§ÉúĞÅÏ¢
 void save_info() {
-    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
-        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥ä¿å­˜ã€‚\n");
-        return; //è¿”å›
+    if (vis_list->size == 0) { //Á´±íÎª¿Õ
+        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔ±£´æ¡£\n");
+        return; //·µ»Ø
     }
-    FILE *fp = fopen(filename, "w+"); //æ‰“å¼€æ–‡ä»¶
-    if (fp == NULL) { //æ‰“å¼€å¤±è´¥
-        printf("æ— æ³•æ‰“å¼€æ–‡ä»¶%sï¼Œæ— æ³•ä¿å­˜æ¸¸å®¢ä¿¡æ¯ã€‚\n", filename);
-        return; //è¿”å›
+    FILE *fp = fopen(filename, "w+"); //´ò¿ªÎÄ¼ş
+    if (fp == NULL) { //´ò¿ªÊ§°Ü
+        printf("ÎŞ·¨´ò¿ªÎÄ¼ş%s£¬ÎŞ·¨±£´æÓÎ¿ÍĞÅÏ¢¡£\n", filename);
+        return; //·µ»Ø
     }
-    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-    while (node != NULL) { //éå†é“¾è¡¨
-        fprintf(fp, "%s %s %s %d %s\n", node->id, node->name, node->sex, node->age, node->remark); //å†™å…¥æ–‡ä»¶
-        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+    while (node != NULL) { //±éÀúÁ´±í
+        fprintf(fp, "%s %s %s %d %s\n", node->id, node->name, node->sex, node->age, node->remark); //Ğ´ÈëÎÄ¼ş
+        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
     }
-    fclose(fp); //å…³é—­æ–‡ä»¶
-    printf("å·²æˆåŠŸä¿å­˜æ¸¸å®¢ä¿¡æ¯åˆ°æ–‡ä»¶%sã€‚\n", filename);
+    fclose(fp); //¹Ø±ÕÎÄ¼ş
+    printf("ÒÑ³É¹¦±£´æÓÎ¿ÍĞÅÏ¢µ½ÎÄ¼ş%s¡£\n", filename);
 }
 
-//åˆ é™¤æ¸¸å®¢ä¿¡æ¯
+//É¾³ıÓÎ¿ÍĞÅÏ¢
 void delete_info() {
-    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
-        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥åˆ é™¤ã€‚\n");
-        return; //è¿”å›
+    if (vis_list->size == 0) { //Á´±íÎª¿Õ
+        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔÉ¾³ı¡£\n");
+        return; //·µ»Ø
     }
-    char id[20]; //è¦åˆ é™¤çš„èº«ä»½è¯å·
-    printf("è¯·è¾“å…¥è¦åˆ é™¤çš„æ¸¸å®¢çš„èº«ä»½è¯å·ï¼š\n");
-    scanf("%s", id); //è¾“å…¥èº«ä»½è¯å·
-    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-    visitor *node = find_node(id); //æŸ¥æ‰¾èŠ‚ç‚¹
-    if (node == NULL) { //æœªæ‰¾åˆ°
-        printf("æ²¡æœ‰æ‰¾åˆ°è¯¥èº«ä»½è¯å·çš„æ¸¸å®¢ï¼Œæ— æ³•åˆ é™¤ã€‚\n");
-        return; //è¿”å›
+    char id[20]; //ÒªÉ¾³ıµÄÉí·İÖ¤ºÅ
+    printf("ÇëÊäÈëÒªÉ¾³ıµÄÓÎ¿ÍµÄÉí·İÖ¤ºÅ£º\n");
+    scanf("%s", id); //ÊäÈëÉí·İÖ¤ºÅ
+    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+    visitor *node = find_node(id); //²éÕÒ½Úµã
+    if (node == NULL) { //Î´ÕÒµ½
+        printf("Ã»ÓĞÕÒµ½¸ÃÉí·İÖ¤ºÅµÄÓÎ¿Í£¬ÎŞ·¨É¾³ı¡£\n");
+        return; //·µ»Ø
     }
-    delete_node(id); //åˆ é™¤èŠ‚ç‚¹
-    printf("å·²æˆåŠŸåˆ é™¤æ¸¸å®¢ä¿¡æ¯ã€‚\n");
+    delete_node(id); //É¾³ı½Úµã
+    printf("ÒÑ³É¹¦É¾³ıÓÎ¿ÍĞÅÏ¢¡£\n");
 }
 
-//ä¿®æ”¹æ¸¸å®¢ä¿¡æ¯
+//ĞŞ¸ÄÓÎ¿ÍĞÅÏ¢
 void modify_info() {
-    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
-        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥ä¿®æ”¹ã€‚\n");
-        return; //è¿”å›
+    if (vis_list->size == 0) { //Á´±íÎª¿Õ
+        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔĞŞ¸Ä¡£\n");
+        return; //·µ»Ø
     }
-    check_password(); //æ£€æŸ¥å¯†ç 
-    char id[20]; //è¦ä¿®æ”¹çš„èº«ä»½è¯å·
-    printf("è¯·è¾“å…¥è¦ä¿®æ”¹çš„æ¸¸å®¢çš„èº«ä»½è¯å·ï¼š\n");
-    scanf("%s", id); //è¾“å…¥å­¦å·
-    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-    visitor *node = find_node(id); //æŸ¥æ‰¾èŠ‚ç‚¹
-    if (node == NULL) { //æœªæ‰¾åˆ°
-        printf("æ²¡æœ‰æ‰¾åˆ°è¯¥èº«ä»½è¯å·çš„æ¸¸å®¢ï¼Œæ— æ³•ä¿®æ”¹ã€‚\n");
-        return; //è¿”å›
+    check_password(); //¼ì²éÃÜÂë
+    char id[20]; //ÒªĞŞ¸ÄµÄÉí·İÖ¤ºÅ
+    printf("ÇëÊäÈëÒªĞŞ¸ÄµÄÓÎ¿ÍµÄÉí·İÖ¤ºÅ£º\n");
+    scanf("%s", id); //ÊäÈëÑ§ºÅ
+    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+    visitor *node = find_node(id); //²éÕÒ½Úµã
+    if (node == NULL) { //Î´ÕÒµ½
+        printf("Ã»ÓĞÕÒµ½¸ÃÉí·İÖ¤ºÅµÄÓÎ¿Í£¬ÎŞ·¨ĞŞ¸Ä¡£\n");
+        return; //·µ»Ø
     }
-    printf("è¯·è¾“å…¥æ¸¸å®¢çš„æ–°ä¿¡æ¯ï¼Œä»¥ç©ºæ ¼åˆ†éš”ï¼Œä»¥å›è½¦ç»“æŸã€‚\n");
-    printf("æ ¼å¼ï¼šèº«ä»½è¯å· å§“å æ€§åˆ« å¹´é¾„ å¤‡æ³¨\n");
-    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //è¾“å…¥æ–°ä¿¡æ¯åˆ°èŠ‚ç‚¹
-    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-    printf("å·²æˆåŠŸä¿®æ”¹æ¸¸å®¢ä¿¡æ¯ã€‚\n");
+    printf("ÇëÊäÈëÓÎ¿ÍµÄĞÂĞÅÏ¢£¬ÒÔ¿Õ¸ñ·Ö¸ô£¬ÒÔ»Ø³µ½áÊø¡£\n");
+    printf("¸ñÊ½£ºÉí·İÖ¤ºÅ ĞÕÃû ĞÔ±ğ ÄêÁä ±¸×¢\n");
+    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //ÊäÈëĞÂĞÅÏ¢µ½½Úµã
+    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+    printf("ÒÑ³É¹¦ĞŞ¸ÄÓÎ¿ÍĞÅÏ¢¡£\n");
 }
 
-//æŸ¥è¯¢æ¸¸å®¢ä¿¡æ¯
+//²éÑ¯ÓÎ¿ÍĞÅÏ¢
 void search_info() {
-    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
-        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥æŸ¥è¯¢ã€‚\n");
-        return; //è¿”å›
+    if (vis_list->size == 0) { //Á´±íÎª¿Õ
+        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔ²éÑ¯¡£\n");
+        return; //·µ»Ø
     }
-    char choice; //ç”¨æˆ·é€‰æ‹©çš„æŸ¥è¯¢æ–¹å¼
-    printf("è¯·é€‰æ‹©æŸ¥è¯¢æ–¹å¼ï¼š\n");
-    printf("(1)æŒ‰èº«ä»½è¯å·æŸ¥è¯¢\n");
-    printf("(2)æŒ‰å§“åæŸ¥è¯¢\n");
-    printf("(3)æŒ‰æ€§åˆ«æŸ¥è¯¢\n");
-    printf("(4)æŒ‰å¹´é¾„æŸ¥è¯¢\n");
-    scanf("%c", &choice); //è¾“å…¥é€‰æ‹©
-    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-    char key[20]; //æŸ¥è¯¢å…³é”®å­—
-    int count = 0; //æŸ¥è¯¢ç»“æœçš„æ•°é‡
+    char choice; //ÓÃ»§Ñ¡ÔñµÄ²éÑ¯·½Ê½
+    printf("ÇëÑ¡Ôñ²éÑ¯·½Ê½£º\n");
+    printf("(1)°´Éí·İÖ¤ºÅ²éÑ¯\n");
+    printf("(2)°´ĞÕÃû²éÑ¯\n");
+    printf("(3)°´ĞÔ±ğ²éÑ¯\n");
+    printf("(4)°´ÄêÁä²éÑ¯\n");
+    scanf("%c", &choice); //ÊäÈëÑ¡Ôñ
+    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+    char key[20]; //²éÑ¯¹Ø¼ü×Ö
+    int count = 0; //²éÑ¯½á¹ûµÄÊıÁ¿
     switch (choice) {
-        case '1': //æŒ‰èº«ä»½è¯å·æŸ¥è¯¢
-            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„å­¦å·ï¼š\n");
-            scanf("%s", key); //è¾“å…¥å­¦å·
-            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-            visitor *node = find_node(key); //æŸ¥æ‰¾èŠ‚ç‚¹
-            if (node == NULL) { //æœªæ‰¾åˆ°
-                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥èº«ä»½è¯çš„æ¸¸å®¢ã€‚\n");
-                return; //è¿”å›
+        case '1': //°´Éí·İÖ¤ºÅ²éÑ¯
+            printf("ÇëÊäÈëÒª²éÑ¯µÄÑ§ºÅ£º\n");
+            scanf("%s", key); //ÊäÈëÑ§ºÅ
+            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+            visitor *node = find_node(key); //²éÕÒ½Úµã
+            if (node == NULL) { //Î´ÕÒµ½
+                printf("Ã»ÓĞÕÒµ½¸ÃÉí·İÖ¤µÄÓÎ¿Í¡£\n");
+                return; //·µ»Ø
             }
-            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
-            print_node(node); //æ‰“å°èŠ‚ç‚¹
+            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
+            print_node(node); //´òÓ¡½Úµã
             break;
-        case '2': //æŒ‰å§“åæŸ¥è¯¢
-            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„å§“åï¼š\n");
-            scanf("%s", key); //è¾“å…¥å§“å
-            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-            visitor *p = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
-            while (p != NULL) { //éå†é“¾è¡¨
-                if (strcmp(p->name, key) == 0) { //åŒ¹é…å§“å
-                    print_node(p); //æ‰“å°èŠ‚ç‚¹
-                    count++; //è®¡æ•°åŠ ä¸€
+        case '2': //°´ĞÕÃû²éÑ¯
+            printf("ÇëÊäÈëÒª²éÑ¯µÄĞÕÃû£º\n");
+            scanf("%s", key); //ÊäÈëĞÕÃû
+            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+            visitor *p = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
+            while (p != NULL) { //±éÀúÁ´±í
+                if (strcmp(p->name, key) == 0) { //Æ¥ÅäĞÕÃû
+                    print_node(p); //´òÓ¡½Úµã
+                    count++; //¼ÆÊı¼ÓÒ»
                 }
-                p = p->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+                p = p->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
             }
-            if (count == 0) { //æ²¡æœ‰åŒ¹é…ç»“æœ
-                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥å§“åçš„æ¸¸å®¢ã€‚\n");
+            if (count == 0) { //Ã»ÓĞÆ¥Åä½á¹û
+                printf("Ã»ÓĞÕÒµ½¸ÃĞÕÃûµÄÓÎ¿Í¡£\n");
             }
             break;
-        case '3': //æŒ‰æ€§åˆ«æŸ¥è¯¢
-            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„æ€§åˆ«ï¼š\n");
-            scanf("%s", key); //è¾“å…¥æ€§åˆ«
-            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-            visitor *q = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
-            while (q != NULL) { //éå†é“¾è¡¨
-                if (strcmp(q->sex, key) == 0) { //åŒ¹é…æ€§åˆ«
-                    print_node(q); //æ‰“å°èŠ‚ç‚¹
-                    count++; //è®¡æ•°åŠ ä¸€
+        case '3': //°´ĞÔ±ğ²éÑ¯
+            printf("ÇëÊäÈëÒª²éÑ¯µÄĞÔ±ğ£º\n");
+            scanf("%s", key); //ÊäÈëĞÔ±ğ
+            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+            visitor *q = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
+            while (q != NULL) { //±éÀúÁ´±í
+                if (strcmp(q->sex, key) == 0) { //Æ¥ÅäĞÔ±ğ
+                    print_node(q); //´òÓ¡½Úµã
+                    count++; //¼ÆÊı¼ÓÒ»
                 }
-                q = q->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+                q = q->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
             }
-            if (count == 0) { //æ²¡æœ‰åŒ¹é…ç»“æœ
-                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥æ€§åˆ«çš„æ¸¸å®¢ã€‚\n");
+            if (count == 0) { //Ã»ÓĞÆ¥Åä½á¹û
+                printf("Ã»ÓĞÕÒµ½¸ÃĞÔ±ğµÄÓÎ¿Í¡£\n");
             }
             break;
-        case '4': //æŒ‰å¹´é¾„æŸ¥è¯¢
-            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„å¹´é¾„ï¼š\n");
-            scanf("%s", key); //è¾“å…¥å¹´é¾„
-            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-            int age = atoi(key); //è½¬æ¢ä¸ºæ•´æ•°
-            visitor *r = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
-            while (r != NULL) { //éå†é“¾è¡¨
-                if (r->age == age) { //åŒ¹é…å¹´é¾„
-                    print_node(r); //æ‰“å°èŠ‚ç‚¹
-                    count++; //è®¡æ•°åŠ ä¸€
+        case '4': //°´ÄêÁä²éÑ¯
+            printf("ÇëÊäÈëÒª²éÑ¯µÄÄêÁä£º\n");
+            scanf("%s", key); //ÊäÈëÄêÁä
+            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+            int age = atoi(key); //×ª»»ÎªÕûÊı
+            visitor *r = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
+            while (r != NULL) { //±éÀúÁ´±í
+                if (r->age == age) { //Æ¥ÅäÄêÁä
+                    print_node(r); //´òÓ¡½Úµã
+                    count++; //¼ÆÊı¼ÓÒ»
                 }
-                r = r->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+                r = r->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
             }
-            if (count == 0) { //æ²¡æœ‰åŒ¹é…ç»“æœ
-                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥å¹´é¾„çš„æ¸¸å®¢ã€‚\n");
+            if (count == 0) { //Ã»ÓĞÆ¥Åä½á¹û
+                printf("Ã»ÓĞÕÒµ½¸ÃÄêÁäµÄÓÎ¿Í¡£\n");
             }
             break;
-        default: //æ— æ•ˆé€‰æ‹©
-            printf("æ— æ•ˆçš„é€‰æ‹©ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\n");
+        default: //ÎŞĞ§Ñ¡Ôñ
+            printf("ÎŞĞ§µÄÑ¡Ôñ£¬ÇëÖØĞÂÊäÈë¡£\n");
     }
 }
 
 
-//é‡Šæ”¾é“¾è¡¨
+//ÊÍ·ÅÁ´±í
 void free_list() {
-    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-    visitor *temp; //ä¸´æ—¶èŠ‚ç‚¹
-    while (node != NULL) { //éå†é“¾è¡¨
-        temp = node; //ä¿å­˜å½“å‰èŠ‚ç‚¹
-        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
-        free(temp); //é‡Šæ”¾å½“å‰èŠ‚ç‚¹
+    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+    visitor *temp; //ÁÙÊ±½Úµã
+    while (node != NULL) { //±éÀúÁ´±í
+        temp = node; //±£´æµ±Ç°½Úµã
+        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+        free(temp); //ÊÍ·Åµ±Ç°½Úµã
     }
-    free(vis_list); //é‡Šæ”¾é“¾è¡¨
+    free(vis_list); //ÊÍ·ÅÁ´±í
 }
 
 
-//åˆ é™¤èŠ‚ç‚¹
+//É¾³ı½Úµã
 void delete_node(char *id) {
-    if (vis_list->head == NULL) { //é“¾è¡¨ä¸ºç©º
-        printf("é“¾è¡¨ä¸ºç©ºï¼Œæ— æ³•åˆ é™¤èŠ‚ç‚¹ã€‚\n");
-        return; //è¿”å›
+    if (vis_list->head == NULL) { //Á´±íÎª¿Õ
+        printf("Á´±íÎª¿Õ£¬ÎŞ·¨É¾³ı½Úµã¡£\n");
+        return; //·µ»Ø
     }
-    visitor *p = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-    visitor *prev = NULL; //å‰ä¸€ä¸ªèŠ‚ç‚¹
-    while (p != NULL) { //éå†é“¾è¡¨
-        if (strcmp(p->id, id) == 0) { //åŒ¹é…å­¦å·
-            if (prev == NULL) { //å¤´èŠ‚ç‚¹
-                vis_list->head = p->next; //å¤´èŠ‚ç‚¹æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
-            } else { //éå¤´èŠ‚ç‚¹
-                prev->next = p->next; //å‰ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆæŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+    visitor *p = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+    visitor *prev = NULL; //Ç°Ò»¸ö½Úµã
+    while (p != NULL) { //±éÀúÁ´±í
+        if (strcmp(p->id, id) == 0) { //Æ¥ÅäÑ§ºÅ
+            if (prev == NULL) { //Í·½Úµã
+                vis_list->head = p->next; //Í·½ÚµãÖ¸ÏòÏÂÒ»¸ö½Úµã
+            } else { //·ÇÍ·½Úµã
+                prev->next = p->next; //Ç°Ò»¸ö½ÚµãµÄÖ¸ÕëÖ¸ÏòÏÂÒ»¸ö½Úµã
             }
-            free(p); //é‡Šæ”¾èŠ‚ç‚¹
-            vis_list->size--; //é“¾è¡¨é•¿åº¦å‡ä¸€
-            return; //è¿”å›
+            free(p); //ÊÍ·Å½Úµã
+            vis_list->size--; //Á´±í³¤¶È¼õÒ»
+            return; //·µ»Ø
         }
-        prev = p; //ä¿å­˜å½“å‰èŠ‚ç‚¹
-        p = p->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+        prev = p; //±£´æµ±Ç°½Úµã
+        p = p->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
     }
 }
 
-//æŸ¥æ‰¾èŠ‚ç‚¹
+//²éÕÒ½Úµã
 visitor *find_node(char *id) {
-    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
-    while (node != NULL) { //éå†é“¾è¡¨
-        if (strcmp(node->id, id) == 0) { //åŒ¹é…å­¦å·
-            return node; //è¿”å›èŠ‚ç‚¹
+    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
+    while (node != NULL) { //±éÀúÁ´±í
+        if (strcmp(node->id, id) == 0) { //Æ¥ÅäÑ§ºÅ
+            return node; //·µ»Ø½Úµã
         }
-        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
     }
-    return NULL; //æœªæ‰¾åˆ°
+    return NULL; //Î´ÕÒµ½
 }
 
-//æ‰“å°èŠ‚ç‚¹
+//´òÓ¡½Úµã
 void print_node(visitor *node) {
-    printf("èº«ä»½è¯å·ï¼š%s\n", node->id);
-    printf("å§“åï¼š%s\n", node->name);
-    printf("æ€§åˆ«ï¼š%s\n", node->sex);
-    printf("å¹´é¾„ï¼š%d\n", node->age);
-    printf("å¤‡æ³¨ï¼š%s\n", node->remark);
+    printf("Éí·İÖ¤ºÅ£º%s\n", node->id);
+    printf("ĞÕÃû£º%s\n", node->name);
+    printf("ĞÔ±ğ£º%s\n", node->sex);
+    printf("ÄêÁä£º%d\n", node->age);
+    printf("±¸×¢£º%s\n", node->remark);
     printf("**********\n");
 }
 
-//æ‰“å°èœå•
+//´òÓ¡²Ëµ¥
 void print_menu() {
-    printf("è¯·é€‰æ‹©ç³»ç»ŸåŠŸèƒ½é¡¹ï¼š\n");
-    printf("a   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯å½•å…¥\n");
-    printf("b   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯æ˜¾ç¤º\n");
-    printf("c   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯ä¿å­˜\n");
-    printf("d   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯åˆ é™¤\n");
-    printf("e   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯ä¿®æ”¹ï¼ˆè¦æ±‚å…ˆè¾“å…¥å¯†ç ï¼‰\n");
-    printf("f   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯æŸ¥è¯¢\n");
-    printf("g   é€€å‡ºç³»ç»Ÿ\n");
-    printf("h   ä¿®æ”¹å¯†ç (éœ€é‡æ–°ç™»é™†ç³»ç»Ÿ)\n");
+    printf("ÇëÑ¡ÔñÏµÍ³¹¦ÄÜÏî£º\n");
+    printf("a   ÓÎ¿Í»ù±¾ĞÅÏ¢Â¼Èë\n");
+    printf("b   ÓÎ¿Í»ù±¾ĞÅÏ¢ÏÔÊ¾\n");
+    printf("c   ÓÎ¿Í»ù±¾ĞÅÏ¢±£´æ\n");
+    printf("d   ÓÎ¿Í»ù±¾ĞÅÏ¢É¾³ı\n");
+    printf("e   ÓÎ¿Í»ù±¾ĞÅÏ¢ĞŞ¸Ä£¨ÒªÇóÏÈÊäÈëÃÜÂë£©\n");
+    printf("f   ÓÎ¿Í»ù±¾ĞÅÏ¢²éÑ¯\n");
+    printf("g   ÍË³öÏµÍ³\n");
+    printf("h   ĞŞ¸ÄÃÜÂë(ĞèÖØĞÂµÇÂ½ÏµÍ³)\n");
 }
 
-//æ£€æŸ¥å¯†ç 
+//¼ì²éÃÜÂë
 int check_password() {
-    char input[20]; //ç”¨æˆ·è¾“å…¥çš„å¯†ç 
-    int count = 0; //å°è¯•æ¬¡æ•°
+    char input[20]; //ÓÃ»§ÊäÈëµÄÃÜÂë
+    int count = 0; //³¢ÊÔ´ÎÊı
     while (1) {
-        printf("è¯·è¾“å…¥å¯†ç ï¼š\n");
-        scanf("%s", input); //è¾“å…¥å¯†ç 
-        getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
-        if (strcmp(input, password) == 0) { //å¯†ç æ­£ç¡®
-            printf("å¯†ç æ­£ç¡®ï¼Œæ¬¢è¿è¿›å…¥ç³»ç»Ÿã€‚\n");
-            return 1; //è·³å‡ºå¾ªç¯
-        } else { //å¯†ç é”™è¯¯
-            printf("å¯†ç é”™è¯¯ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\n");
-            count++; //è®¡æ•°åŠ ä¸€
-            if (count == 3) { //å°è¯•æ¬¡æ•°è¾¾åˆ°3æ¬¡
-                printf("æ‚¨å·²ç»è¿ç»­è¾“å…¥é”™è¯¯3æ¬¡ï¼Œæ— æ³•ç™»å…¥ç³»ç»Ÿã€‚\n");
-                exit(EXIT_FAILURE); //é€€å‡ºç¨‹åº
+        printf("ÇëÊäÈëÃÜÂë£º\n");
+        scanf("%s", input); //ÊäÈëÃÜÂë
+        getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+        if (strcmp(input, password) == 0) { //ÃÜÂëÕıÈ·
+            printf("ÃÜÂëÕıÈ·£¬»¶Ó­½øÈëÏµÍ³¡£\n");
+            return 1; //Ìø³öÑ­»·
+        } else { //ÃÜÂë´íÎó
+            printf("ÃÜÂë´íÎó£¬ÇëÖØĞÂÊäÈë¡£\n");
+            count++; //¼ÆÊı¼ÓÒ»
+            if (count == 3) { //³¢ÊÔ´ÎÊı´ïµ½3´Î
+                printf("ÄúÒÑ¾­Á¬ĞøÊäÈë´íÎó3´Î£¬ÎŞ·¨µÇÈëÏµÍ³¡£\n");
+                exit(EXIT_FAILURE); //ÍË³ö³ÌĞò
             }
         }
     }
 }
 
-int check_password_strength(char*password) {//å¯¹å¯†ç å¼ºåº¦çš„æ£€æµ‹
+int check_password_strength(char*password) {//¶ÔÃÜÂëÇ¿¶ÈµÄ¼ì²â
     int length = strlen(password);
     int has_lower = 0;
     int has_upper = 0;
@@ -439,11 +514,11 @@ int check_password_strength(char*password) {//å¯¹å¯†ç å¼ºåº¦çš„æ£€æµ‹
         }
     }
     if (length < 8 || !(has_lower && has_upper && has_digit && has_special)) {
-        return 0;//å¼±
+        return 0;//Èõ
     } else if (length < 12 || !(has_lower && has_upper && has_digit && has_special)) {
-        return 1;//ä¸­ç­‰
+        return 1;//ÖĞµÈ
     } else {
-        return 2;//å¼º
+        return 2;//Ç¿
     }
 }
 
@@ -453,30 +528,30 @@ void modify_password(char *password)
     int count = 0;
     char verify_password[20];
     char temp[20];
-    printf("è¯·è¾“å…¥åŸå…ˆçš„å¯†ç : \n");
+    printf("ÇëÊäÈëÔ­ÏÈµÄÃÜÂë: \n");
     scanf("%s",verify_password);
-    getchar(); // æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+    getchar(); // Çå³ı»º³åÇøµÄ»»ĞĞ·û
     while(1)
     {
         if (strcmp(verify_password, password) == 0)
-        { // å¯†ç æ­£ç¡®
-            printf("è¯·è¾“å…¥æ–°çš„å¯†ç ï¼š\n");
+        { // ÃÜÂëÕıÈ·
+            printf("ÇëÊäÈëĞÂµÄÃÜÂë£º\n");
             scanf("%s",temp);
             strcpy(password,temp);
-            break; // è·³å‡ºå¾ªç¯
+            break; // Ìø³öÑ­»·
         } 
-        else{ // å¯†ç é”™è¯¯
-            printf("å¯†ç é”™è¯¯ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\n");
+        else{ // ÃÜÂë´íÎó
+            printf("ÃÜÂë´íÎó£¬ÇëÖØĞÂÊäÈë¡£\n");
             count++; 
-            // è®¡æ•°åŠ ä¸€
+            // ¼ÆÊı¼ÓÒ»
             if (count == 3)
-            { // å°è¯•æ¬¡æ•°è¾¾åˆ°3æ¬¡
-                printf("æ‚¨å·²è¿ç»­è¾“å…¥é”™è¯¯3æ¬¡ï¼Œæ— æ³•ä¿®æ”¹å¯†ç ã€‚\n");
-                return; // é€€å‡ºå‡½æ•°
+            { // ³¢ÊÔ´ÎÊı´ïµ½3´Î
+                printf("ÄúÒÑÁ¬ĞøÊäÈë´íÎó3´Î£¬ÎŞ·¨ĞŞ¸ÄÃÜÂë¡£\n");
+                return; // ÍË³öº¯Êı
             }
-            printf("è¯·è¾“å…¥åŸå…ˆçš„å¯†ç : \n");
+            printf("ÇëÊäÈëÔ­ÏÈµÄÃÜÂë: \n");
             scanf("%s",verify_password);
-            getchar(); // æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+            getchar(); // Çå³ı»º³åÇøµÄ»»ĞĞ·û
         }
     }
     check_password();
