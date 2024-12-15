@@ -60,36 +60,37 @@ let switchCtn = document.querySelector("#switch-cnt");
     // 创建XMLHttpRequest对象
     const xhr = new XMLHttpRequest();
     // 设置POST请求，并指定后端接收数据的URL
-    xhr.open("POST", "http://127.0.0.1:5500/%E6%B8%B8%E5%AE%A2%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F.c", true);
+    xhr.open("POST", "http://192.168.43.57:5500/login", true);
     // 设置请求头，指定发送的数据类型为JSON
-    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
     // 获取输入框中的数据
     const name = document.getElementById('Name').value;
     const phonenumber = document.getElementById('PhoneNumber').value;
     const password = document.getElementById('Password').value;
 
-    // 将数据转换为json格式
-    const jsonData = JSON.stringify({"name": name, "phonenumber": phonenumber, "password": password, "task": 'add'});
-    console.log("本次提交数据：", jsonData);
-
+  
     // 处理响应数据
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4) { // 请求完成
             if (xhr.status === 200) {
                 // 后端返回200状态码，处理成功情况
-                console.log("请求成功，服务器响应：", xhr.responseText);
-                // 这里可以添加更多的成功处理逻辑
+                alert('Login successful');
+                    localStorage.setItem('username', username);
+                    window.location.href = 'index.html';
+
             } else {
                 // 后端返回非200状态码，处理失败情况
-                console.error('请求失败，状态码：', xhr.status, '，响应：', xhr.responseText);
+                alert('Login failed: ' + xhr.responseText);
                 // 这里可以添加更多的失败处理逻辑
             }
         }
     };
 
-    // 发送请求，并将JSON数据作为请求体发送给后端
-    xhr.send(jsonData);
+    const data = `username=${username}&password=${password}`;
+
+            xhr.send(params);
+
 }
 
  //注销账户
