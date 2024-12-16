@@ -57,7 +57,7 @@
               <input type="text" class="form_input" placeholder="Name" id="Name">
               <input type="text" class="form_input" placeholder="PhoneNumber" id="PhoneNumber">
               <input type="password" class="form_input" placeholder="Password" id="Password"/>
-              <button class="form_button button submit" onclick="JsonAdd()">SIGN UP</button>
+              <button class="form_button button submit" onclick="addData()">SIGN UP</button>
               <div id="data-container"></div>
           </form>
       </div>
@@ -68,8 +68,8 @@
               <span class="form_span">使用手机号登录</span>
               <input type="text" class="form_input" placeholder="PhoneNumber" id="PhoneNumber">
               <input type="password" class="form_input" placeholder="Password" id="Password" />
-              <button onclick="JsonDelete()" class="form_link">注销账号</button>
-              <button class="form_button button submit" onclick = "checkData()">SIGN IN</button>
+              <button onclick="deleteData()" class="form_link">注销账号</button>
+              <button type="submit" class="form_button button submit" onclick = "checkData()">SIGN IN</button>
           </form>
       </div>
 
@@ -79,7 +79,7 @@
           <div class="switch_container" id="switch-c1">
               <h2 class="switch_title title" style="letter-spacing: 0;">WELCOME TO UESTC</h2>
               <p class="switch_description description">已有账号？点此登录</p>
-              <button onclick="JsonCheck()" class="switch_button button switch-btn">SIGN IN</button>
+              <button type="submit" class="switch_button button switch-btn">SIGN IN</button>
           </div>
 
           <div class="switch_container is-hidden" id="switch-c2">
