@@ -3,264 +3,546 @@
 #include <string.h>
 #include <ctype.h>
 
-#define COBJMACROS
+#include <winsock2.h>
+#include <windows.h>
 #include <stdio.h>
-#include <MsXml6.h>
-#include <assert.h>
-#include <time.h>
-#include <Windows.h>
+#include <string.h>
 #include <stdlib.h>
-#include "microhttpd.h"
-// ÓÃ»§Êı¾İ¿â£¬¼òµ¥Ê¾Àı
-#define DB_FILE "users.txt"
+/*
+  Copyright (c) 2009-2017 Dave Gamble and cJSON contributors
 
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
 
-#define PORT 5500
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
 
-#include <sys/stat.h>
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
 
-#define MAX_LEN 100
+#ifndef cJSON__h
+#define cJSON__h
 
-int check_user(const char *username, const char *password) {
-    FILE *file = fopen("users.txt", "r");
-    if (file == NULL) {
-        return 0;  // ÎÄ¼ş´ò¿ªÊ§°Ü
-    }
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-    char stored_username[MAX_LEN], stored_password[MAX_LEN];
-    while (fscanf(file, "%s %s", stored_username, stored_password) != EOF) {
-        if (strcmp(stored_username, username) == 0 && strcmp(stored_password, password) == 0) {
-            fclose(file);
-            return 1;  // ÓÃ»§ÃûºÍÃÜÂëÆ¥Åä
-        }
-    }
+#if !defined(__WINDOWS__) && (defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32))
+#define __WINDOWS__
+#endif
 
-    fclose(file);
-    return 0;  // ÓÃ»§Ãû»òÃÜÂë´íÎó
+#ifdef __WINDOWS__
+
+/* When compiling for windows, we specify a specific calling convention to avoid issues where we are being called from a project with a different default calling convention.  For windows you have 3 define options:
+
+CJSON_HIDE_SYMBOLS - Define this in the case where you don't want to ever dllexport symbols
+CJSON_EXPORT_SYMBOLS - Define this on library build when you want to dllexport symbols (default)
+CJSON_IMPORT_SYMBOLS - Define this if you want to dllimport symbol
+
+For *nix builds that support visibility attribute, you can define similar behavior by
+
+setting default visibility to hidden by adding
+-fvisibility=hidden (for gcc)
+or
+-xldscope=hidden (for sun cc)
+to CFLAGS
+
+then using the CJSON_API_VISIBILITY flag to "export" the same symbols the way CJSON_EXPORT_SYMBOLS does
+
+*/
+
+#define CJSON_CDECL __cdecl
+#define CJSON_STDCALL __stdcall
+
+/* export symbols by default, this is necessary for copy pasting the C and header file */
+#if !defined(CJSON_HIDE_SYMBOLS) && !defined(CJSON_IMPORT_SYMBOLS) && !defined(CJSON_EXPORT_SYMBOLS)
+#define CJSON_EXPORT_SYMBOLS
+#endif
+
+#if defined(CJSON_HIDE_SYMBOLS)
+#define CJSON_PUBLIC(type)   type CJSON_STDCALL
+#elif defined(CJSON_EXPORT_SYMBOLS)
+#define CJSON_PUBLIC(type)   __declspec(dllexport) type CJSON_STDCALL
+#elif defined(CJSON_IMPORT_SYMBOLS)
+#define CJSON_PUBLIC(type)   __declspec(dllimport) type CJSON_STDCALL
+#endif
+#else /* !__WINDOWS__ */
+#define CJSON_CDECL
+#define CJSON_STDCALL
+
+#if (defined(__GNUC__) || defined(__SUNPRO_CC) || defined (__SUNPRO_C)) && defined(CJSON_API_VISIBILITY)
+#define CJSON_PUBLIC(type)   __attribute__((visibility("default"))) type
+#else
+#define CJSON_PUBLIC(type) type
+#endif
+#endif
+
+/* project version */
+#define CJSON_VERSION_MAJOR 1
+#define CJSON_VERSION_MINOR 7
+#define CJSON_VERSION_PATCH 18
+
+#include <stddef.h>
+
+/* cJSON Types: */
+#define cJSON_Invalid (0)
+#define cJSON_False  (1 << 0)
+#define cJSON_True   (1 << 1)
+#define cJSON_NULL   (1 << 2)
+#define cJSON_Number (1 << 3)
+#define cJSON_String (1 << 4)
+#define cJSON_Array  (1 << 5)
+#define cJSON_Object (1 << 6)
+#define cJSON_Raw    (1 << 7) /* raw json */
+
+#define cJSON_IsReference 256
+#define cJSON_StringIsConst 512
+
+/* The cJSON structure: */
+typedef struct cJSON
+{
+    /* next/prev allow you to walk array/object chains. Alternatively, use GetArraySize/GetArrayItem/GetObjectItem */
+    struct cJSON *next;
+    struct cJSON *prev;
+    /* An array or object item will have a child pointer pointing to a chain of the items in the array/object. */
+    struct cJSON *child;
+
+    /* The type of the item, as above. */
+    int type;
+
+    /* The item's string, if type==cJSON_String  and type == cJSON_Raw */
+    char *valuestring;
+    /* writing to valueint is DEPRECATED, use cJSON_SetNumberValue instead */
+    int valueint;
+    /* The item's number, if type==cJSON_Number */
+    double valuedouble;
+
+    /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
+    char *string;
+} cJSON;
+
+typedef struct cJSON_Hooks
+{
+      /* malloc/free are CDECL on Windows regardless of the default calling convention of the compiler, so ensure the hooks allow passing those functions directly. */
+      void *(CJSON_CDECL *malloc_fn)(size_t sz);
+      void (CJSON_CDECL *free_fn)(void *ptr);
+} cJSON_Hooks;
+
+typedef int cJSON_bool;
+
+/* Limits how deeply nested arrays/objects can be before cJSON rejects to parse them.
+ * This is to prevent stack overflows. */
+#ifndef CJSON_NESTING_LIMIT
+#define CJSON_NESTING_LIMIT 1000
+#endif
+
+/* Limits the length of circular references can be before cJSON rejects to parse them.
+ * This is to prevent stack overflows. */
+#ifndef CJSON_CIRCULAR_LIMIT
+#define CJSON_CIRCULAR_LIMIT 10000
+#endif
+
+/* returns the version of cJSON as a string */
+CJSON_PUBLIC(const char*) cJSON_Version(void);
+
+/* Supply malloc, realloc and free functions to cJSON */
+CJSON_PUBLIC(void) cJSON_InitHooks(cJSON_Hooks* hooks);
+
+/* Memory Management: the caller is always responsible to free the results from all variants of cJSON_Parse (with cJSON_Delete) and cJSON_Print (with stdlib free, cJSON_Hooks.free_fn, or cJSON_free as appropriate). The exception is cJSON_PrintPreallocated, where the caller has full responsibility of the buffer. */
+/* Supply a block of JSON, and this returns a cJSON object you can interrogate. */
+CJSON_PUBLIC(cJSON *) cJSON_Parse(const char *value);
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithLength(const char *value, size_t buffer_length);
+/* ParseWithOpts allows you to require (and check) that the JSON is null terminated, and to retrieve the pointer to the final byte parsed. */
+/* If you supply a ptr in return_parse_end and parsing fails, then return_parse_end will contain a pointer to the error so will match cJSON_GetErrorPtr(). */
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithOpts(const char *value, const char **return_parse_end, cJSON_bool require_null_terminated);
+CJSON_PUBLIC(cJSON *) cJSON_ParseWithLengthOpts(const char *value, size_t buffer_length, const char **return_parse_end, cJSON_bool require_null_terminated);
+
+/* Render a cJSON entity to text for transfer/storage. */
+CJSON_PUBLIC(char *) cJSON_Print(const cJSON *item);
+/* Render a cJSON entity to text for transfer/storage without any formatting. */
+CJSON_PUBLIC(char *) cJSON_PrintUnformatted(const cJSON *item);
+/* Render a cJSON entity to text using a buffered strategy. prebuffer is a guess at the final size. guessing well reduces reallocation. fmt=0 gives unformatted, =1 gives formatted */
+CJSON_PUBLIC(char *) cJSON_PrintBuffered(const cJSON *item, int prebuffer, cJSON_bool fmt);
+/* Render a cJSON entity to text using a buffer already allocated in memory with given length. Returns 1 on success and 0 on failure. */
+/* NOTE: cJSON is not always 100% accurate in estimating how much memory it will use, so to be safe allocate 5 bytes more than you actually need */
+CJSON_PUBLIC(cJSON_bool) cJSON_PrintPreallocated(cJSON *item, char *buffer, const int length, const cJSON_bool format);
+/* Delete a cJSON entity and all subentities. */
+CJSON_PUBLIC(void) cJSON_Delete(cJSON *item);
+
+/* Returns the number of items in an array (or object). */
+CJSON_PUBLIC(int) cJSON_GetArraySize(const cJSON *array);
+/* Retrieve item number "index" from array "array". Returns NULL if unsuccessful. */
+CJSON_PUBLIC(cJSON *) cJSON_GetArrayItem(const cJSON *array, int index);
+/* Get item "string" from object. Case insensitive. */
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItem(const cJSON * const object, const char * const string);
+CJSON_PUBLIC(cJSON *) cJSON_GetObjectItemCaseSensitive(const cJSON * const object, const char * const string);
+CJSON_PUBLIC(cJSON_bool) cJSON_HasObjectItem(const cJSON *object, const char *string);
+/* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when cJSON_Parse() returns 0. 0 when cJSON_Parse() succeeds. */
+CJSON_PUBLIC(const char *) cJSON_GetErrorPtr(void);
+
+/* Check item type and return its value */
+CJSON_PUBLIC(char *) cJSON_GetStringValue(const cJSON * const item);
+CJSON_PUBLIC(double) cJSON_GetNumberValue(const cJSON * const item);
+
+/* These functions check the type of an item */
+CJSON_PUBLIC(cJSON_bool) cJSON_IsInvalid(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsFalse(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsTrue(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsBool(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsNull(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsNumber(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsString(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsArray(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsObject(const cJSON * const item);
+CJSON_PUBLIC(cJSON_bool) cJSON_IsRaw(const cJSON * const item);
+
+/* These calls create a cJSON item of the appropriate type. */
+CJSON_PUBLIC(cJSON *) cJSON_CreateNull(void);
+CJSON_PUBLIC(cJSON *) cJSON_CreateTrue(void);
+CJSON_PUBLIC(cJSON *) cJSON_CreateFalse(void);
+CJSON_PUBLIC(cJSON *) cJSON_CreateBool(cJSON_bool boolean);
+CJSON_PUBLIC(cJSON *) cJSON_CreateNumber(double num);
+CJSON_PUBLIC(cJSON *) cJSON_CreateString(const char *string);
+/* raw json */
+CJSON_PUBLIC(cJSON *) cJSON_CreateRaw(const char *raw);
+CJSON_PUBLIC(cJSON *) cJSON_CreateArray(void);
+CJSON_PUBLIC(cJSON *) cJSON_CreateObject(void);
+
+/* Create a string where valuestring references a string so
+ * it will not be freed by cJSON_Delete */
+CJSON_PUBLIC(cJSON *) cJSON_CreateStringReference(const char *string);
+/* Create an object/array that only references it's elements so
+ * they will not be freed by cJSON_Delete */
+CJSON_PUBLIC(cJSON *) cJSON_CreateObjectReference(const cJSON *child);
+CJSON_PUBLIC(cJSON *) cJSON_CreateArrayReference(const cJSON *child);
+
+/* These utilities create an Array of count items.
+ * The parameter count cannot be greater than the number of elements in the number array, otherwise array access will be out of bounds.*/
+CJSON_PUBLIC(cJSON *) cJSON_CreateIntArray(const int *numbers, int count);
+CJSON_PUBLIC(cJSON *) cJSON_CreateFloatArray(const float *numbers, int count);
+CJSON_PUBLIC(cJSON *) cJSON_CreateDoubleArray(const double *numbers, int count);
+CJSON_PUBLIC(cJSON *) cJSON_CreateStringArray(const char *const *strings, int count);
+
+/* Append item to the specified array/object. */
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToArray(cJSON *array, cJSON *item);
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObject(cJSON *object, const char *string, cJSON *item);
+/* Use this when string is definitely const (i.e. a literal, or as good as), and will definitely survive the cJSON object.
+ * WARNING: When this function was used, make sure to always check that (item->type & cJSON_StringIsConst) is zero before
+ * writing to `item->string` */
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item);
+/* Append reference to item to the specified array/object. Use this when you want to add an existing cJSON to a new cJSON, but don't want to corrupt your existing cJSON. */
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToArray(cJSON *array, cJSON *item);
+CJSON_PUBLIC(cJSON_bool) cJSON_AddItemReferenceToObject(cJSON *object, const char *string, cJSON *item);
+
+/* Remove/Detach items from Arrays/Objects. */
+CJSON_PUBLIC(cJSON *) cJSON_DetachItemViaPointer(cJSON *parent, cJSON * const item);
+CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromArray(cJSON *array, int which);
+CJSON_PUBLIC(void) cJSON_DeleteItemFromArray(cJSON *array, int which);
+CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObject(cJSON *object, const char *string);
+CJSON_PUBLIC(cJSON *) cJSON_DetachItemFromObjectCaseSensitive(cJSON *object, const char *string);
+CJSON_PUBLIC(void) cJSON_DeleteItemFromObject(cJSON *object, const char *string);
+CJSON_PUBLIC(void) cJSON_DeleteItemFromObjectCaseSensitive(cJSON *object, const char *string);
+
+/* Update array items. */
+CJSON_PUBLIC(cJSON_bool) cJSON_InsertItemInArray(cJSON *array, int which, cJSON *newitem); /* Shifts pre-existing items to the right. */
+CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemViaPointer(cJSON * const parent, cJSON * const item, cJSON * replacement);
+CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInArray(cJSON *array, int which, cJSON *newitem);
+CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *newitem);
+CJSON_PUBLIC(cJSON_bool) cJSON_ReplaceItemInObjectCaseSensitive(cJSON *object,const char *string,cJSON *newitem);
+
+/* Duplicate a cJSON item */
+CJSON_PUBLIC(cJSON *) cJSON_Duplicate(const cJSON *item, cJSON_bool recurse);
+/* Duplicate will create a new, identical cJSON item to the one you pass, in new memory that will
+ * need to be released. With recurse!=0, it will duplicate any children connected to the item.
+ * The item->next and ->prev pointers are always zero on return from Duplicate. */
+/* Recursively compare two cJSON items for equality. If either a or b is NULL or invalid, they will be considered unequal.
+ * case_sensitive determines if object keys are treated case sensitive (1) or case insensitive (0) */
+CJSON_PUBLIC(cJSON_bool) cJSON_Compare(const cJSON * const a, const cJSON * const b, const cJSON_bool case_sensitive);
+
+/* Minify a strings, remove blank characters(such as ' ', '\t', '\r', '\n') from strings.
+ * The input pointer json cannot point to a read-only address area, such as a string constant, 
+ * but should point to a readable and writable address area. */
+CJSON_PUBLIC(void) cJSON_Minify(char *json);
+
+/* Helper functions for creating and adding items to an object at the same time.
+ * They return the added item or NULL on failure. */
+CJSON_PUBLIC(cJSON*) cJSON_AddNullToObject(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddTrueToObject(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddFalseToObject(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddBoolToObject(cJSON * const object, const char * const name, const cJSON_bool boolean);
+CJSON_PUBLIC(cJSON*) cJSON_AddNumberToObject(cJSON * const object, const char * const name, const double number);
+CJSON_PUBLIC(cJSON*) cJSON_AddStringToObject(cJSON * const object, const char * const name, const char * const string);
+CJSON_PUBLIC(cJSON*) cJSON_AddRawToObject(cJSON * const object, const char * const name, const char * const raw);
+CJSON_PUBLIC(cJSON*) cJSON_AddObjectToObject(cJSON * const object, const char * const name);
+CJSON_PUBLIC(cJSON*) cJSON_AddArrayToObject(cJSON * const object, const char * const name);
+
+/* When assigning an integer value, it needs to be propagated to valuedouble too. */
+#define cJSON_SetIntValue(object, number) ((object) ? (object)->valueint = (object)->valuedouble = (number) : (number))
+/* helper for the cJSON_SetNumberValue macro */
+CJSON_PUBLIC(double) cJSON_SetNumberHelper(cJSON *object, double number);
+#define cJSON_SetNumberValue(object, number) ((object != NULL) ? cJSON_SetNumberHelper(object, (double)number) : (number))
+/* Change the valuestring of a cJSON_String object, only takes effect when type of object is cJSON_String */
+CJSON_PUBLIC(char*) cJSON_SetValuestring(cJSON *object, const char *valuestring);
+
+/* If the object is not a boolean type this does nothing and returns cJSON_Invalid else it returns the new type*/
+#define cJSON_SetBoolValue(object, boolValue) ( \
+    (object != NULL && ((object)->type & (cJSON_False|cJSON_True))) ? \
+    (object)->type=((object)->type &(~(cJSON_False|cJSON_True)))|((boolValue)?cJSON_True:cJSON_False) : \
+    cJSON_Invalid\
+)
+
+/* Macro for iterating over an array or object */
+#define cJSON_ArrayForEach(element, array) for(element = (array != NULL) ? (array)->child : NULL; element != NULL; element = element->next)
+
+/* malloc/free objects using the malloc/free functions that have been set with cJSON_InitHooks */
+CJSON_PUBLIC(void *) cJSON_malloc(size_t size);
+CJSON_PUBLIC(void) cJSON_free(void *object);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif
+
+#define PORT 8080
+#define BUFFER_SIZE 1024
 
 
+#pragma comment(lib, "ws2_32.lib")
 
-//¶¨ÒåÁËÒ»¸öÃûÎªvisitorµÄ½á¹¹Ìå£¬ÓÃÓÚ´æ´¢ÓÎ¿ÍµÄĞÅÏ¢
-typedef struct visitor {
-    char id[20]; //Éí·İÖ¤ºÅ
-    char name[20]; //ĞÕÃû
-    char sex[2]; //ĞÔ±ğ
-    int age; //ÄêÁä
-    char remark[100]; //±¸×¢
-    struct visitor *next; //Ö¸ÏòÏÂÒ»¸ö½ÚµãµÄÖ¸Õë
-} visitor;
-
-//¶¨ÒåÁ´±í½á¹¹Ìå
-typedef struct list {//¶¨ÒåÁËÒ»¸öÃûÎªlistµÄ½á¹¹Ìå£¬ÓÃÓÚ´æ´¢Á´±íµÄÍ·½ÚµãºÍ³¤¶È
-    visitor *head; //Ö¸ÏòÁ´±íÍ·½ÚµãµÄÖ¸Õë
-    int size; //Á´±íµÄ³¤¶È
-} list;
-
-//¶¨ÒåÈ«¾Ö±äÁ¿
-list *vis_list; //ÓÎ¿ÍÁ´±í
-char filename[] = "visitor.txt"; //±£´æÓÎ¿ÍĞÅÏ¢µÄÎÄ¼şÃû
-char password[] = "123456"; //ĞŞ¸ÄĞÅÏ¢µÄÃÜÂë
-
-typedef struct {
-    char username[50];
-    char password[50];
-} User;
-
-// ±£´æÓÃ»§Êı¾İµ½ÎÄ¼ş
-int save_user(const User *user) {
-    FILE *file = fopen(DB_FILE, "a");
-    if (file == NULL) {
-        return -1;
-    }
-    fprintf(file, "%s,%s\n", user->username, user->password);
-    fclose(file);
-    return 0;
-}
-
-// ¼ì²éÓÃ»§ÊÇ·ñ´æÔÚ
-int check_user(const User *user) {
-    FILE *file = fopen(DB_FILE, "r");
-    if (file == NULL) {
-        return -1;
-    }
-
-    char line[100];
-    while (fgets(line, sizeof(line), file)) {
-        char stored_username[50], stored_password[50];
-        sscanf(line, "%49[^,],%49s", stored_username, stored_password);
-        if (strcmp(stored_username, user->username) == 0 &&
-            strcmp(stored_password, user->password) == 0) {
-            fclose(file);
-            return 0; // ÓÃ»§´æÔÚ£¬ÃÜÂëÕıÈ·
-        }
-    }
-    fclose(file);
-    return -1; // ÓÃ»§²»´æÔÚ»òÃÜÂë´íÎó
-}
-
-// ´¦ÀíHTTPÇëÇó
-static int answer_to_request(void *cls, struct MHD_Connection *connection, const char *url, const char *method,
-                             const char *version, const char *upload_data, size_t *upload_data_size, void **con_cls) {
-    if (strcmp(method, "POST") == 0) {
-        char *response = NULL;
-        int ret = -1;
-
-        // ½âÎöPOSTÊı¾İ
-        if (upload_data_size != NULL && *upload_data_size > 0) {
-            User user;
-            sscanf(upload_data, "username=%49[^&]&password=%49s", user.username, user.password);
-
-            if (strstr(url, "/login") != NULL) {
-                // µÇÂ¼²Ù×÷
-                if (check_user(&user) == 0) {
-                    response = "Login successful!";
-                    ret = 200;
-                } else {
-                    response = "Invalid username or password!";
-                    ret = 403; // µÇÂ¼Ê§°Ü
-                }
-            } else if (strstr(url, "/register") != NULL) {
-                // ×¢²á²Ù×÷
-                if (save_user(&user) == 0) {
-                    response = "Registration successful!";
-                    ret = 200;
-                } else {
-                    response = "Error saving user!";
-                    ret = 500; // ×¢²áÊ§°Ü
-                }
-            }
-        }
-
-        if (response != NULL) {
-            struct MHD_Response *mhd_response = MHD_create_response_from_buffer(strlen(response), (void*)response, MHD_RESPMEM_PERSISTENT);
-            MHD_add_response_header(mhd_response, "Content-Type", "text/plain");
-            int ret_code = MHD_queue_response(connection, ret, mhd_response);
-            MHD_destroy_response(mhd_response);
-            return ret_code;
-        }
-    }
-    return MHD_NO;
-}
-
-int main() {
-    struct MHD_Daemon *daemon;
-
-    daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, PORT, NULL, NULL, &answer_to_request, NULL, MHD_OPTION_END);
-    if (NULL == daemon) {
+// åˆå§‹åŒ– Winsock åº“
+int init_winsock() {
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        printf("WSAStartup failed. Error Code : %d", WSAGetLastError());
         return 1;
     }
-    printf("Server started on port %d\n", PORT);
-    getchar(); // µÈ´ıÓÃ»§°´¼üÒÔ¹Ø±Õ·şÎñÆ÷
-    MHD_stop_daemon(daemon);
     return 0;
 }
 
-//º¯ÊıÉùÃ÷
-void init_list(); //³õÊ¼»¯Á´±í
-void input_info(); //Â¼ÈëÓÎ¿ÍĞÅÏ¢
-void display_info(); //ÏÔÊ¾ÓÎ¿ÍĞÅÏ¢
-void save_info(); //±£´æÓÎ¿ÍĞÅÏ¢
-void delete_info(); //É¾³ıÓÎ¿ÍĞÅÏ¢
-void modify_info(); //ĞŞ¸ÄÓÎ¿ÍĞÅÏ¢
-void search_info(); //²éÑ¯ÓÎ¿ÍĞÅÏ¢
-void free_list(); //ÊÍ·ÅÁ´±í
-visitor *create_node(); //´´½¨½Úµã
-void insert_node(visitor *node); //²åÈë½Úµã
-void delete_node(char *id); //É¾³ı½Úµã
-visitor *find_node(char *id); //²éÕÒ½Úµã
-void print_node(visitor *node); //´òÓ¡½Úµã
-void print_menu(); //´òÓ¡²Ëµ¥
-int check_password(); //¼ì²éÃÜÂë
-void modify_password(char *password);
-int check_password_strength(char*password);//¼ì²éÃÜÂëÇ¿¶È
+//åˆ›å»ºå’Œç»‘å®šæœåŠ¡å™¨å¥—æ¥å­—
+SOCKET create_server_socket() {
+    SOCKET server_socket;
+    struct sockaddr_in server_addr;
 
-//Ö÷º¯Êı
+    server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket == INVALID_SOCKET) {
+        printf("Socket creation failed. Error Code : %d", WSAGetLastError());
+        return INVALID_SOCKET;
+    }
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
+        printf("Bind failed. Error Code : %d", WSAGetLastError());
+        return INVALID_SOCKET;
+    }
+
+    return server_socket;
+}
+
+// å¤„ç†å®¢æˆ·ç«¯è¯·æ±‚å¹¶è¿”å›å“åº”
+void handle_client_request(SOCKET client_socket) {
+    char buffer[BUFFER_SIZE];
+    int bytes_received;
+
+    bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0);
+    if (bytes_received > 0) {
+        // è§£æ HTTP è¯·æ±‚å¤´ï¼ˆè¿™é‡Œåªæ˜¯ä¸€ä¸ªç®€å•çš„ç¤ºä¾‹ï¼Œä¸åšå®Œæ•´çš„è¯·æ±‚è§£æï¼‰
+        buffer[bytes_received] = '\0';
+        printf("Request received: \n%s\n", buffer);
+
+        // åˆ›å»ºä¸€ä¸ªç®€å•çš„ HTTP å“åº”
+        const char *response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
+                               "<html><body><h1>Welcome to My Server</h1></body></html>";
+
+        send(client_socket, response, strlen(response), 0);
+    }
+
+    closesocket(client_socket);
+}
+
+//å®šä¹‰äº†ä¸€ä¸ªåä¸ºvisitorçš„ç»“æ„ä½“ï¼Œç”¨äºå­˜å‚¨æ¸¸å®¢çš„ä¿¡æ¯
+typedef struct visitor {
+    char id[20]; //èº«ä»½è¯å·
+    char name[20]; //å§“å
+    char sex[2]; //æ€§åˆ«
+    int age; //å¹´é¾„
+    char remark[100]; //å¤‡æ³¨
+    struct visitor *next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆ
+} visitor;
+
+//å®šä¹‰é“¾è¡¨ç»“æ„ä½“
+typedef struct list {//å®šä¹‰äº†ä¸€ä¸ªåä¸ºlistçš„ç»“æ„ä½“ï¼Œç”¨äºå­˜å‚¨é“¾è¡¨çš„å¤´èŠ‚ç‚¹å’Œé•¿åº¦
+    visitor *head; //æŒ‡å‘é“¾è¡¨å¤´èŠ‚ç‚¹çš„æŒ‡é’ˆ
+    int size; //é“¾è¡¨çš„é•¿åº¦
+} list;
+
+//å®šä¹‰å…¨å±€å˜é‡
+list *vis_list; //æ¸¸å®¢é“¾è¡¨
+char filename[] = "visitor.txt"; //ä¿å­˜æ¸¸å®¢ä¿¡æ¯çš„æ–‡ä»¶å
+char password[] = "123456"; //ä¿®æ”¹ä¿¡æ¯çš„å¯†ç 
+
+//å‡½æ•°å£°æ˜
+void init_list(); //åˆå§‹åŒ–é“¾è¡¨
+void input_info(); //å½•å…¥æ¸¸å®¢ä¿¡æ¯
+void display_info(); //æ˜¾ç¤ºæ¸¸å®¢ä¿¡æ¯
+void save_info(); //ä¿å­˜æ¸¸å®¢ä¿¡æ¯
+void delete_info(); //åˆ é™¤æ¸¸å®¢ä¿¡æ¯
+void modify_info(); //ä¿®æ”¹æ¸¸å®¢ä¿¡æ¯
+void search_info(); //æŸ¥è¯¢æ¸¸å®¢ä¿¡æ¯
+void free_list(); //é‡Šæ”¾é“¾è¡¨
+visitor *create_node(); //åˆ›å»ºèŠ‚ç‚¹
+void insert_node(visitor *node); //æ’å…¥èŠ‚ç‚¹
+void delete_node(char *id); //åˆ é™¤èŠ‚ç‚¹
+visitor *find_node(char *id); //æŸ¥æ‰¾èŠ‚ç‚¹
+void print_node(visitor *node); //æ‰“å°èŠ‚ç‚¹
+void print_menu(); //æ‰“å°èœå•
+int check_password(); //æ£€æŸ¥å¯†ç 
+void modify_password(char *password);
+int check_password_strength(char*password);//æ£€æŸ¥å¯†ç å¼ºåº¦
+
+void handle_http_request(SOCKET clientSocket) {
+    // åˆ›å»ºä¸€ä¸ªJSONå¯¹è±¡
+    cJSON *json = cJSON_CreateObject();
+
+    // å°†JSONå¯¹è±¡è½¬æ¢ä¸ºå­—ç¬¦ä¸²
+    char *json_string = cJSON_Print(json);
+    if (json_string == NULL) {
+        // å¤„ç†é”™è¯¯
+        cJSON_Delete(json);
+        closesocket(clientSocket);
+        return;
+    }
+
+    // å‘é€HTTPå“åº”å¤´
+    const char *response_headers = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n";
+    send(clientSocket, response_headers, strlen(response_headers), 0);
+
+    // å‘é€JSONå“åº”ä½“
+    send(clientSocket, json_string, strlen(json_string), 0);
+
+    // æ¸…ç†
+    cJSON_free(json_string);
+    cJSON_Delete(json);
+    closesocket(clientSocket);
+}
+
+//ä¸»å‡½æ•°
 int main() {
 
-     char *data;
-    char username[MAX_LEN], password[MAX_LEN];
-    
-    // »ñÈ¡POSTÇëÇóµÄ±íµ¥Êı¾İ
-    data = getenv("QUERY_STRING");
-    if (data != NULL) {
-        sscanf(data, "username=%s&password=%s", username, password);
-        
-        // URL ½âÂë
-        for (int i = 0; username[i]; i++) if (username[i] == '+') username[i] = ' ';
-        for (int i = 0; password[i]; i++) if (password[i] == '+') password[i] = ' ';
-        
-        // ÑéÖ¤ÓÃ»§
-        if (check_user(username, password)) {
-            printf("Content-Type: text/html\n\n");
-            printf("<h1>µÇÂ¼³É¹¦£¡</h1>");
-        } else {
-            printf("Content-Type: text/html\n\n");
-            printf("<h1>ÓÃ»§Ãû»òÃÜÂë´íÎó</h1>");
+    char *json_string;
+    char name[20],id[20],password[20];
+    scanf(*json_string,"%s %s %s",name,id,password);
+   check_password(password); //æ£€æŸ¥å¯†ç 
+   void modify_password(char *password);
+int check_password_strength(char*password); 
+
+
+    if (init_winsock() != 0) {
+        return 1;
+    }
+
+    SOCKET server_socket = create_server_socket();
+    if (server_socket == INVALID_SOCKET) {
+        WSACleanup();
+        return 1;
+    }
+
+    // å¼€å§‹ç›‘å¬ç«¯å£
+    if (listen(server_socket, 5) == SOCKET_ERROR) {
+        printf("Listen failed. Error Code : %d", WSAGetLastError());
+        closesocket(server_socket);
+        WSACleanup();
+        return 1;
+    }
+
+    printf("Server is running on port %d...\n", PORT);
+
+    while (1) {
+        SOCKET client_socket = accept(server_socket, NULL, NULL);
+        if (client_socket != INVALID_SOCKET) {
+            handle_client_request(client_socket);
         }
-    } else {
-        printf("Content-Type: text/html\n\n");
-        printf("<h1>±íµ¥Ìá½»Ê§°Ü</h1>");
     }
-    
+
+    // å…³é—­æœåŠ¡å™¨å¥—æ¥å­—
+    closesocket(server_socket);
+    WSACleanup();
     return 0;
 
-     // ¼ì²éÎÄ¼şÈ¨ÏŞ
-    struct stat file_stat;
-    if (stat("/usr/lib/cgi-bin/login.cgi", &file_stat) == 0) {
-        printf("File permission: %o\n", file_stat.st_mode);
-    } else {
-        perror("Error getting file status");
+    //accept
+    SOCKADDR_IN clientAddr;
+    int  len1 = sizeof(clientAddr);
+    SOCKET clientSocket = accept(server_socket,(SOCKADDR*)&clientAddr,&len1);
+    char recvBuff[128];
+    while(1){
+        memset(recvBuff,0,sizeof(recvBuff));
+        //recv();
+        recv(clientSocket,recvBuff,sizeof(recvBuff)-1,0);
+        printf("receive message: %s\n",recvBuff);
+        char sendBuff[128];
+        memset(sendBuff,0,size0f(sendBuff));
+        printf("Please input:\n");
+        scanf("%s",sendBuff);
+        send(clientSocket,sendBuff,strlen(sendBuff),0);
     }
 
-    // ÉèÖÃÎÄ¼şÈ¨ÏŞ
-    if (chmod("/usr/lib/cgi-bin/login.cgi", S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0) {
-        printf("File permission changed successfully.\n");
-    } else {
-        perror("Error changing file permission");
-    }
-
+    closesocket(clientSocket);
+    closesocket(server_socket);
     return 0;
-
 
     if(check_password())
     {   
         check_password_strength(password);
-        char choice; //ÓÃ»§Ñ¡ÔñµÄ¹¦ÄÜÏî
-        init_list(); //³õÊ¼»¯Á´±í
+        char choice; //ç”¨æˆ·é€‰æ‹©çš„åŠŸèƒ½é¡¹
+        init_list(); //åˆå§‹åŒ–é“¾è¡¨
         while (1) {
-            print_menu(); //´òÓ¡²Ëµ¥
-            printf("ÇëÑ¡ÔñÏµÍ³¹¦ÄÜÏî£º\n");
-            scanf("%c", &choice); //ÊäÈëÑ¡Ôñ
-            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
+            print_menu(); //æ‰“å°èœå•
+            printf("è¯·é€‰æ‹©ç³»ç»ŸåŠŸèƒ½é¡¹ï¼š\n");
+            scanf("%c", &choice); //è¾“å…¥é€‰æ‹©
+            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
             switch (choice) {
-                case 'a': //Â¼ÈëĞÅÏ¢
+                case 'a': //å½•å…¥ä¿¡æ¯
                     input_info();
                     break;
-                case 'b': //ÏÔÊ¾ĞÅÏ¢
+                case 'b': //æ˜¾ç¤ºä¿¡æ¯
                     display_info();
                     break;
-                case 'c': //±£´æĞÅÏ¢
+                case 'c': //ä¿å­˜ä¿¡æ¯
                     save_info();
                     break;
-                case 'd': //É¾³ıĞÅÏ¢
+                case 'd': //åˆ é™¤ä¿¡æ¯
                     delete_info();
                     break;
-                case 'e': //ĞŞ¸ÄĞÅÏ¢
+                case 'e': //ä¿®æ”¹ä¿¡æ¯
                     modify_info();
                     break;
-                case 'f': //²éÑ¯ĞÅÏ¢
+                case 'f': //æŸ¥è¯¢ä¿¡æ¯
                     search_info();
                     break;
-                case 'g': //ÍË³öÏµÍ³
-                    free_list(); //ÊÍ·ÅÁ´±í
-                    printf("¸ĞĞ»ÄúÊ¹ÓÃ±¾ÏµÍ³£¬ÔÙ¼û£¡\n");
-                    return 0; //½áÊø³ÌĞò
-                case 'h': //ĞŞ¸ÄÃÜÂë
+                case 'g': //é€€å‡ºç³»ç»Ÿ
+                    free_list(); //é‡Šæ”¾é“¾è¡¨
+                    printf("æ„Ÿè°¢æ‚¨ä½¿ç”¨æœ¬ç³»ç»Ÿï¼Œå†è§ï¼\n");
+                    return 0; //ç»“æŸç¨‹åº
+                case 'h': //ä¿®æ”¹å¯†ç 
                     modify_password(password);
                     break;
-                default: //ÎŞĞ§Ñ¡Ôñ
-                    printf("\033[91mÎŞĞ§µÄÑ¡Ôñ£¬ÇëÖØĞÂÊäÈë¡£\033[0m\n");
+                default: //æ— æ•ˆé€‰æ‹©
+                    printf("\033[91mæ— æ•ˆçš„é€‰æ‹©ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\033[0m\n");
                     break;
             }
             break;
@@ -269,333 +551,333 @@ int main() {
 }
 
 
-//´´½¨½Úµã
+//åˆ›å»ºèŠ‚ç‚¹
 visitor *create_node() {
-    visitor *node = (visitor *)malloc(sizeof(visitor)); //·ÖÅäÄÚ´æ¿Õ¼ä
-    if (node == NULL) { //·ÖÅäÊ§°Ü
-        printf("ÄÚ´æ·ÖÅäÊ§°Ü£¬ÎŞ·¨´´½¨½Úµã¡£\n");
-        exit(1); //ÍË³ö³ÌĞò
+    visitor *node = (visitor *)malloc(sizeof(visitor)); //åˆ†é…å†…å­˜ç©ºé—´
+    if (node == NULL) { //åˆ†é…å¤±è´¥
+        printf("å†…å­˜åˆ†é…å¤±è´¥ï¼Œæ— æ³•åˆ›å»ºèŠ‚ç‚¹ã€‚\n");
+        exit(1); //é€€å‡ºç¨‹åº
     }
-    node->next = NULL; //Ö¸ÕëÎª¿Õ
-    return node; //·µ»Ø½Úµã
+    node->next = NULL; //æŒ‡é’ˆä¸ºç©º
+    return node; //è¿”å›èŠ‚ç‚¹
 }
 
-//³õÊ¼»¯Á´±í
+//åˆå§‹åŒ–é“¾è¡¨
 void init_list() {
-    vis_list = (list *)malloc(sizeof(list)); //·ÖÅäÄÚ´æ¿Õ¼ä
-    if (vis_list == NULL) { //·ÖÅäÊ§°Ü
-        printf("ÄÚ´æ·ÖÅäÊ§°Ü£¬ÎŞ·¨³õÊ¼»¯Á´±í¡£\n");
-        exit(1); //ÍË³ö³ÌĞò
+    vis_list = (list *)malloc(sizeof(list)); //åˆ†é…å†…å­˜ç©ºé—´
+    if (vis_list == NULL) { //åˆ†é…å¤±è´¥
+        printf("å†…å­˜åˆ†é…å¤±è´¥ï¼Œæ— æ³•åˆå§‹åŒ–é“¾è¡¨ã€‚\n");
+        exit(1); //é€€å‡ºç¨‹åº
     }
-    vis_list->head = NULL; //Í·½ÚµãÎª¿Õ
-    vis_list->size = 0; //Á´±í³¤¶ÈÎª0
-    FILE *fp = fopen(filename, "r"); //´ò¿ªÎÄ¼ş
-    if (fp == NULL) { //´ò¿ªÊ§°Ü
-        printf("ÎŞ·¨´ò¿ªÎÄ¼ş%s£¬¿ÉÄÜÊÇµÚÒ»´ÎÊ¹ÓÃ±¾ÏµÍ³¡£\n", filename);
-        return; //·µ»Ø
+    vis_list->head = NULL; //å¤´èŠ‚ç‚¹ä¸ºç©º
+    vis_list->size = 0; //é“¾è¡¨é•¿åº¦ä¸º0
+    FILE *fp = fopen(filename, "r"); //æ‰“å¼€æ–‡ä»¶
+    if (fp == NULL) { //æ‰“å¼€å¤±è´¥
+        printf("æ— æ³•æ‰“å¼€æ–‡ä»¶%sï¼Œå¯èƒ½æ˜¯ç¬¬ä¸€æ¬¡ä½¿ç”¨æœ¬ç³»ç»Ÿã€‚\n", filename);
+        return; //è¿”å›
     }
-    visitor *node; //ÁÙÊ±½Úµã
+    visitor *node; //ä¸´æ—¶èŠ‚ç‚¹
     while (1) {
-        node = create_node(); //´´½¨½Úµã
-        if (fscanf(fp, "%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark) == EOF) { //¶ÁÈ¡ÎÄ¼şµ½½Úµã
-            free(node); //ÊÍ·Å½Úµã
-            break; //Ìø³öÑ­»·
+        node = create_node(); //åˆ›å»ºèŠ‚ç‚¹
+        if (fscanf(fp, "%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark) == EOF) { //è¯»å–æ–‡ä»¶åˆ°èŠ‚ç‚¹
+            free(node); //é‡Šæ”¾èŠ‚ç‚¹
+            break; //è·³å‡ºå¾ªç¯
         }
-        insert_node(node); //²åÈë½Úµã
+        insert_node(node); //æ’å…¥èŠ‚ç‚¹
     }
-    fclose(fp); //¹Ø±ÕÎÄ¼ş
-    printf("ÒÑ´ÓÎÄ¼ş%sÖĞ¶ÁÈ¡ÓÎ¿ÍĞÅÏ¢¡£\n", filename);
+    fclose(fp); //å…³é—­æ–‡ä»¶
+    printf("å·²ä»æ–‡ä»¶%sä¸­è¯»å–æ¸¸å®¢ä¿¡æ¯ã€‚\n", filename);
 }
 
-//²åÈë½Úµã
+//æ’å…¥èŠ‚ç‚¹
 void insert_node(visitor *node) {
-    if (vis_list->head == NULL) { //Á´±íÎª¿Õ
-        vis_list->head = node; //Í·½ÚµãÎªĞÂ½Úµã
-    } else { //Á´±í²»Îª¿Õ
-        visitor *p = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-        while (p->next != NULL) { //±éÀúÁ´±í
-            p = p->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+    if (vis_list->head == NULL) { //é“¾è¡¨ä¸ºç©º
+        vis_list->head = node; //å¤´èŠ‚ç‚¹ä¸ºæ–°èŠ‚ç‚¹
+    } else { //é“¾è¡¨ä¸ä¸ºç©º
+        visitor *p = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+        while (p->next != NULL) { //éå†é“¾è¡¨
+            p = p->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
         }
-        p->next = node; //Î²½ÚµãµÄÖ¸ÕëÖ¸ÏòĞÂ½Úµã
+        p->next = node; //å°¾èŠ‚ç‚¹çš„æŒ‡é’ˆæŒ‡å‘æ–°èŠ‚ç‚¹
     }
-    vis_list->size++; //Á´±í³¤¶È¼ÓÒ»
+    vis_list->size++; //é“¾è¡¨é•¿åº¦åŠ ä¸€
 }
 
 
-//Â¼ÈëÑ§ÉúĞÅÏ¢
+//å½•å…¥å­¦ç”Ÿä¿¡æ¯
 void input_info() {
-    printf("ÇëÊäÈëÓÎ¿ÍµÄ»ù±¾ĞÅÏ¢£¬ÒÔ¿Õ¸ñ·Ö¸ô£¬ÒÔ»Ø³µ½áÊø¡£\n");
-    printf("¸ñÊ½£ºÉí·İÖ¤ºÅ ĞÕÃû ĞÔ±ğ ÄêÁä ±¸×¢\n");
-    visitor *node = create_node(); //´´½¨½Úµã
-    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //ÊäÈëĞÅÏ¢µ½½Úµã
-    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-    if (find_node(node->id) != NULL) { //²éÕÒÊÇ·ñÒÑ´æÔÚÏàÍ¬Ñ§ºÅµÄ½Úµã
-        printf("¸ÃÉí·İÖ¤ºÅÒÑ´æÔÚ£¬ÎŞ·¨Â¼Èë¡£\n");
-        free(node); //ÊÍ·Å½Úµã
-        return; //·µ»Ø
+    printf("è¯·è¾“å…¥æ¸¸å®¢çš„åŸºæœ¬ä¿¡æ¯ï¼Œä»¥ç©ºæ ¼åˆ†éš”ï¼Œä»¥å›è½¦ç»“æŸã€‚\n");
+    printf("æ ¼å¼ï¼šèº«ä»½è¯å· å§“å æ€§åˆ« å¹´é¾„ å¤‡æ³¨\n");
+    visitor *node = create_node(); //åˆ›å»ºèŠ‚ç‚¹
+    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //è¾“å…¥ä¿¡æ¯åˆ°èŠ‚ç‚¹
+    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+    if (find_node(node->id) != NULL) { //æŸ¥æ‰¾æ˜¯å¦å·²å­˜åœ¨ç›¸åŒå­¦å·çš„èŠ‚ç‚¹
+        printf("è¯¥èº«ä»½è¯å·å·²å­˜åœ¨ï¼Œæ— æ³•å½•å…¥ã€‚\n");
+        free(node); //é‡Šæ”¾èŠ‚ç‚¹
+        return; //è¿”å›
     }
-    insert_node(node); //²åÈë½Úµã
-    printf("ÒÑ³É¹¦Â¼ÈëÓÎ¿ÍĞÅÏ¢¡£\n");
+    insert_node(node); //æ’å…¥èŠ‚ç‚¹
+    printf("å·²æˆåŠŸå½•å…¥æ¸¸å®¢ä¿¡æ¯ã€‚\n");
 }
 
-//ÏÔÊ¾Ñ§ÉúĞÅÏ¢
+//æ˜¾ç¤ºå­¦ç”Ÿä¿¡æ¯
 void display_info() {
-    if (vis_list->size == 0) { //Á´±íÎª¿Õ
-        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔÏÔÊ¾¡£\n");
-        return; //·µ»Ø
+    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
+        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥æ˜¾ç¤ºã€‚\n");
+        return; //è¿”å›
     }
-    printf("ÒÔÏÂÊÇËùÓĞÓÎ¿ÍµÄ»ù±¾ĞÅÏ¢£º\n");
-    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-    while (node != NULL) { //±éÀúÁ´±í
-        print_node(node); //´òÓ¡½Úµã
-        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+    printf("ä»¥ä¸‹æ˜¯æ‰€æœ‰æ¸¸å®¢çš„åŸºæœ¬ä¿¡æ¯ï¼š\n");
+    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+    while (node != NULL) { //éå†é“¾è¡¨
+        print_node(node); //æ‰“å°èŠ‚ç‚¹
+        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
     }
 }
 
-//±£´æÑ§ÉúĞÅÏ¢
+//ä¿å­˜å­¦ç”Ÿä¿¡æ¯
 void save_info() {
-    if (vis_list->size == 0) { //Á´±íÎª¿Õ
-        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔ±£´æ¡£\n");
-        return; //·µ»Ø
+    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
+        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥ä¿å­˜ã€‚\n");
+        return; //è¿”å›
     }
-    FILE *fp = fopen(filename, "w+"); //´ò¿ªÎÄ¼ş
-    if (fp == NULL) { //´ò¿ªÊ§°Ü
-        printf("ÎŞ·¨´ò¿ªÎÄ¼ş%s£¬ÎŞ·¨±£´æÓÎ¿ÍĞÅÏ¢¡£\n", filename);
-        return; //·µ»Ø
+    FILE *fp = fopen(filename, "w+"); //æ‰“å¼€æ–‡ä»¶
+    if (fp == NULL) { //æ‰“å¼€å¤±è´¥
+        printf("æ— æ³•æ‰“å¼€æ–‡ä»¶%sï¼Œæ— æ³•ä¿å­˜æ¸¸å®¢ä¿¡æ¯ã€‚\n", filename);
+        return; //è¿”å›
     }
-    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-    while (node != NULL) { //±éÀúÁ´±í
-        fprintf(fp, "%s %s %s %d %s\n", node->id, node->name, node->sex, node->age, node->remark); //Ğ´ÈëÎÄ¼ş
-        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+    while (node != NULL) { //éå†é“¾è¡¨
+        fprintf(fp, "%s %s %s %d %s\n", node->id, node->name, node->sex, node->age, node->remark); //å†™å…¥æ–‡ä»¶
+        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
     }
-    fclose(fp); //¹Ø±ÕÎÄ¼ş
-    printf("ÒÑ³É¹¦±£´æÓÎ¿ÍĞÅÏ¢µ½ÎÄ¼ş%s¡£\n", filename);
+    fclose(fp); //å…³é—­æ–‡ä»¶
+    printf("å·²æˆåŠŸä¿å­˜æ¸¸å®¢ä¿¡æ¯åˆ°æ–‡ä»¶%sã€‚\n", filename);
 }
 
-//É¾³ıÓÎ¿ÍĞÅÏ¢
+//åˆ é™¤æ¸¸å®¢ä¿¡æ¯
 void delete_info() {
-    if (vis_list->size == 0) { //Á´±íÎª¿Õ
-        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔÉ¾³ı¡£\n");
-        return; //·µ»Ø
+    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
+        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥åˆ é™¤ã€‚\n");
+        return; //è¿”å›
     }
-    char id[20]; //ÒªÉ¾³ıµÄÉí·İÖ¤ºÅ
-    printf("ÇëÊäÈëÒªÉ¾³ıµÄÓÎ¿ÍµÄÉí·İÖ¤ºÅ£º\n");
-    scanf("%s", id); //ÊäÈëÉí·İÖ¤ºÅ
-    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-    visitor *node = find_node(id); //²éÕÒ½Úµã
-    if (node == NULL) { //Î´ÕÒµ½
-        printf("Ã»ÓĞÕÒµ½¸ÃÉí·İÖ¤ºÅµÄÓÎ¿Í£¬ÎŞ·¨É¾³ı¡£\n");
-        return; //·µ»Ø
+    char id[20]; //è¦åˆ é™¤çš„èº«ä»½è¯å·
+    printf("è¯·è¾“å…¥è¦åˆ é™¤çš„æ¸¸å®¢çš„èº«ä»½è¯å·ï¼š\n");
+    scanf("%s", id); //è¾“å…¥èº«ä»½è¯å·
+    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+    visitor *node = find_node(id); //æŸ¥æ‰¾èŠ‚ç‚¹
+    if (node == NULL) { //æœªæ‰¾åˆ°
+        printf("æ²¡æœ‰æ‰¾åˆ°è¯¥èº«ä»½è¯å·çš„æ¸¸å®¢ï¼Œæ— æ³•åˆ é™¤ã€‚\n");
+        return; //è¿”å›
     }
-    delete_node(id); //É¾³ı½Úµã
-    printf("ÒÑ³É¹¦É¾³ıÓÎ¿ÍĞÅÏ¢¡£\n");
+    delete_node(id); //åˆ é™¤èŠ‚ç‚¹
+    printf("å·²æˆåŠŸåˆ é™¤æ¸¸å®¢ä¿¡æ¯ã€‚\n");
 }
 
-//ĞŞ¸ÄÓÎ¿ÍĞÅÏ¢
+//ä¿®æ”¹æ¸¸å®¢ä¿¡æ¯
 void modify_info() {
-    if (vis_list->size == 0) { //Á´±íÎª¿Õ
-        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔĞŞ¸Ä¡£\n");
-        return; //·µ»Ø
+    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
+        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥ä¿®æ”¹ã€‚\n");
+        return; //è¿”å›
     }
-    check_password(); //¼ì²éÃÜÂë
-    char id[20]; //ÒªĞŞ¸ÄµÄÉí·İÖ¤ºÅ
-    printf("ÇëÊäÈëÒªĞŞ¸ÄµÄÓÎ¿ÍµÄÉí·İÖ¤ºÅ£º\n");
-    scanf("%s", id); //ÊäÈëÑ§ºÅ
-    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-    visitor *node = find_node(id); //²éÕÒ½Úµã
-    if (node == NULL) { //Î´ÕÒµ½
-        printf("Ã»ÓĞÕÒµ½¸ÃÉí·İÖ¤ºÅµÄÓÎ¿Í£¬ÎŞ·¨ĞŞ¸Ä¡£\n");
-        return; //·µ»Ø
+    check_password(); //æ£€æŸ¥å¯†ç 
+    char id[20]; //è¦ä¿®æ”¹çš„èº«ä»½è¯å·
+    printf("è¯·è¾“å…¥è¦ä¿®æ”¹çš„æ¸¸å®¢çš„èº«ä»½è¯å·ï¼š\n");
+    scanf("%s", id); //è¾“å…¥å­¦å·
+    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+    visitor *node = find_node(id); //æŸ¥æ‰¾èŠ‚ç‚¹
+    if (node == NULL) { //æœªæ‰¾åˆ°
+        printf("æ²¡æœ‰æ‰¾åˆ°è¯¥èº«ä»½è¯å·çš„æ¸¸å®¢ï¼Œæ— æ³•ä¿®æ”¹ã€‚\n");
+        return; //è¿”å›
     }
-    printf("ÇëÊäÈëÓÎ¿ÍµÄĞÂĞÅÏ¢£¬ÒÔ¿Õ¸ñ·Ö¸ô£¬ÒÔ»Ø³µ½áÊø¡£\n");
-    printf("¸ñÊ½£ºÉí·İÖ¤ºÅ ĞÕÃû ĞÔ±ğ ÄêÁä ±¸×¢\n");
-    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //ÊäÈëĞÂĞÅÏ¢µ½½Úµã
-    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-    printf("ÒÑ³É¹¦ĞŞ¸ÄÓÎ¿ÍĞÅÏ¢¡£\n");
+    printf("è¯·è¾“å…¥æ¸¸å®¢çš„æ–°ä¿¡æ¯ï¼Œä»¥ç©ºæ ¼åˆ†éš”ï¼Œä»¥å›è½¦ç»“æŸã€‚\n");
+    printf("æ ¼å¼ï¼šèº«ä»½è¯å· å§“å æ€§åˆ« å¹´é¾„ å¤‡æ³¨\n");
+    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //è¾“å…¥æ–°ä¿¡æ¯åˆ°èŠ‚ç‚¹
+    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+    printf("å·²æˆåŠŸä¿®æ”¹æ¸¸å®¢ä¿¡æ¯ã€‚\n");
 }
 
-//²éÑ¯ÓÎ¿ÍĞÅÏ¢
+//æŸ¥è¯¢æ¸¸å®¢ä¿¡æ¯
 void search_info() {
-    if (vis_list->size == 0) { //Á´±íÎª¿Õ
-        printf("Ã»ÓĞÓÎ¿ÍĞÅÏ¢¿ÉÒÔ²éÑ¯¡£\n");
-        return; //·µ»Ø
+    if (vis_list->size == 0) { //é“¾è¡¨ä¸ºç©º
+        printf("æ²¡æœ‰æ¸¸å®¢ä¿¡æ¯å¯ä»¥æŸ¥è¯¢ã€‚\n");
+        return; //è¿”å›
     }
-    char choice; //ÓÃ»§Ñ¡ÔñµÄ²éÑ¯·½Ê½
-    printf("ÇëÑ¡Ôñ²éÑ¯·½Ê½£º\n");
-    printf("(1)°´Éí·İÖ¤ºÅ²éÑ¯\n");
-    printf("(2)°´ĞÕÃû²éÑ¯\n");
-    printf("(3)°´ĞÔ±ğ²éÑ¯\n");
-    printf("(4)°´ÄêÁä²éÑ¯\n");
-    scanf("%c", &choice); //ÊäÈëÑ¡Ôñ
-    getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-    char key[20]; //²éÑ¯¹Ø¼ü×Ö
-    int count = 0; //²éÑ¯½á¹ûµÄÊıÁ¿
+    char choice; //ç”¨æˆ·é€‰æ‹©çš„æŸ¥è¯¢æ–¹å¼
+    printf("è¯·é€‰æ‹©æŸ¥è¯¢æ–¹å¼ï¼š\n");
+    printf("(1)æŒ‰èº«ä»½è¯å·æŸ¥è¯¢\n");
+    printf("(2)æŒ‰å§“åæŸ¥è¯¢\n");
+    printf("(3)æŒ‰æ€§åˆ«æŸ¥è¯¢\n");
+    printf("(4)æŒ‰å¹´é¾„æŸ¥è¯¢\n");
+    scanf("%c", &choice); 
+    getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+    char key[20]; //æŸ¥è¯¢å…³é”®å­—
+    int count = 0; //æŸ¥è¯¢ç»“æœçš„æ•°é‡
     switch (choice) {
-        case '1': //°´Éí·İÖ¤ºÅ²éÑ¯
-            printf("ÇëÊäÈëÒª²éÑ¯µÄÑ§ºÅ£º\n");
-            scanf("%s", key); //ÊäÈëÑ§ºÅ
-            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-            visitor *node = find_node(key); //²éÕÒ½Úµã
-            if (node == NULL) { //Î´ÕÒµ½
-                printf("Ã»ÓĞÕÒµ½¸ÃÉí·İÖ¤µÄÓÎ¿Í¡£\n");
-                return; //·µ»Ø
+        case '1': //æŒ‰èº«ä»½è¯å·æŸ¥è¯¢
+            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„å­¦å·ï¼š\n");
+            scanf("%s", key); //è¾“å…¥å­¦å·
+            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+            visitor *node = find_node(key); //æŸ¥æ‰¾èŠ‚ç‚¹
+            if (node == NULL) { //æœªæ‰¾åˆ°
+                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥èº«ä»½è¯çš„æ¸¸å®¢ã€‚\n");
+                return; //è¿”å›
             }
-            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
-            print_node(node); //´òÓ¡½Úµã
+            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
+            print_node(node); //æ‰“å°èŠ‚ç‚¹
             break;
-        case '2': //°´ĞÕÃû²éÑ¯
-            printf("ÇëÊäÈëÒª²éÑ¯µÄĞÕÃû£º\n");
-            scanf("%s", key); //ÊäÈëĞÕÃû
-            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-            visitor *p = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
-            while (p != NULL) { //±éÀúÁ´±í
-                if (strcmp(p->name, key) == 0) { //Æ¥ÅäĞÕÃû
-                    print_node(p); //´òÓ¡½Úµã
-                    count++; //¼ÆÊı¼ÓÒ»
+        case '2': //æŒ‰å§“åæŸ¥è¯¢
+            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„å§“åï¼š\n");
+            scanf("%s", key); //è¾“å…¥å§“å
+            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+            visitor *p = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
+            while (p != NULL) { //éå†é“¾è¡¨
+                if (strcmp(p->name, key) == 0) { //åŒ¹é…å§“å
+                    print_node(p); //æ‰“å°èŠ‚ç‚¹
+                    count++; //è®¡æ•°åŠ ä¸€
                 }
-                p = p->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+                p = p->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
             }
-            if (count == 0) { //Ã»ÓĞÆ¥Åä½á¹û
-                printf("Ã»ÓĞÕÒµ½¸ÃĞÕÃûµÄÓÎ¿Í¡£\n");
+            if (count == 0) { //æ²¡æœ‰åŒ¹é…ç»“æœ
+                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥å§“åçš„æ¸¸å®¢ã€‚\n");
             }
             break;
-        case '3': //°´ĞÔ±ğ²éÑ¯
-            printf("ÇëÊäÈëÒª²éÑ¯µÄĞÔ±ğ£º\n");
-            scanf("%s", key); //ÊäÈëĞÔ±ğ
-            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-            visitor *q = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
-            while (q != NULL) { //±éÀúÁ´±í
-                if (strcmp(q->sex, key) == 0) { //Æ¥ÅäĞÔ±ğ
-                    print_node(q); //´òÓ¡½Úµã
-                    count++; //¼ÆÊı¼ÓÒ»
+        case '3': //æŒ‰æ€§åˆ«æŸ¥è¯¢
+            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„æ€§åˆ«ï¼š\n");
+            scanf("%s", key); //è¾“å…¥æ€§åˆ«
+            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+            visitor *q = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
+            while (q != NULL) { //éå†é“¾è¡¨
+                if (strcmp(q->sex, key) == 0) { //åŒ¹é…æ€§åˆ«
+                    print_node(q); //æ‰“å°èŠ‚ç‚¹
+                    count++; //è®¡æ•°åŠ ä¸€
                 }
-                q = q->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+                q = q->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
             }
-            if (count == 0) { //Ã»ÓĞÆ¥Åä½á¹û
-                printf("Ã»ÓĞÕÒµ½¸ÃĞÔ±ğµÄÓÎ¿Í¡£\n");
+            if (count == 0) { //æ²¡æœ‰åŒ¹é…ç»“æœ
+                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥æ€§åˆ«çš„æ¸¸å®¢ã€‚\n");
             }
             break;
-        case '4': //°´ÄêÁä²éÑ¯
-            printf("ÇëÊäÈëÒª²éÑ¯µÄÄêÁä£º\n");
-            scanf("%s", key); //ÊäÈëÄêÁä
-            getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-            int age = atoi(key); //×ª»»ÎªÕûÊı
-            visitor *r = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-            printf("ÒÔÏÂÊÇ²éÑ¯½á¹û£º\n");
-            while (r != NULL) { //±éÀúÁ´±í
-                if (r->age == age) { //Æ¥ÅäÄêÁä
-                    print_node(r); //´òÓ¡½Úµã
-                    count++; //¼ÆÊı¼ÓÒ»
+        case '4': //æŒ‰å¹´é¾„æŸ¥è¯¢
+            printf("è¯·è¾“å…¥è¦æŸ¥è¯¢çš„å¹´é¾„ï¼š\n");
+            scanf("%s", key); //è¾“å…¥å¹´é¾„
+            getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+            int age = atoi(key); //è½¬æ¢ä¸ºæ•´æ•°
+            visitor *r = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+            printf("ä»¥ä¸‹æ˜¯æŸ¥è¯¢ç»“æœï¼š\n");
+            while (r != NULL) { //éå†é“¾è¡¨
+                if (r->age == age) { //åŒ¹é…å¹´é¾„
+                    print_node(r); //æ‰“å°èŠ‚ç‚¹
+                    count++; //è®¡æ•°åŠ ä¸€
                 }
-                r = r->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+                r = r->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
             }
-            if (count == 0) { //Ã»ÓĞÆ¥Åä½á¹û
-                printf("Ã»ÓĞÕÒµ½¸ÃÄêÁäµÄÓÎ¿Í¡£\n");
+            if (count == 0) { //æ²¡æœ‰åŒ¹é…ç»“æœ
+                printf("æ²¡æœ‰æ‰¾åˆ°è¯¥å¹´é¾„çš„æ¸¸å®¢ã€‚\n");
             }
             break;
-        default: //ÎŞĞ§Ñ¡Ôñ
-            printf("ÎŞĞ§µÄÑ¡Ôñ£¬ÇëÖØĞÂÊäÈë¡£\n");
+        default: //æ— æ•ˆé€‰æ‹©
+            printf("æ— æ•ˆçš„é€‰æ‹©ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\n");
     }
 }
 
 
-//ÊÍ·ÅÁ´±í
+//é‡Šæ”¾é“¾è¡¨
 void free_list() {
-    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-    visitor *temp; //ÁÙÊ±½Úµã
-    while (node != NULL) { //±éÀúÁ´±í
-        temp = node; //±£´æµ±Ç°½Úµã
-        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
-        free(temp); //ÊÍ·Åµ±Ç°½Úµã
+    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+    visitor *temp; //ä¸´æ—¶èŠ‚ç‚¹
+    while (node != NULL) { //éå†é“¾è¡¨
+        temp = node; //ä¿å­˜å½“å‰èŠ‚ç‚¹
+        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+        free(temp); //é‡Šæ”¾å½“å‰èŠ‚ç‚¹
     }
-    free(vis_list); //ÊÍ·ÅÁ´±í
+    free(vis_list); //é‡Šæ”¾é“¾è¡¨
 }
 
 
-//É¾³ı½Úµã
+//åˆ é™¤èŠ‚ç‚¹
 void delete_node(char *id) {
-    if (vis_list->head == NULL) { //Á´±íÎª¿Õ
-        printf("Á´±íÎª¿Õ£¬ÎŞ·¨É¾³ı½Úµã¡£\n");
-        return; //·µ»Ø
+    if (vis_list->head == NULL) { //é“¾è¡¨ä¸ºç©º
+        printf("é“¾è¡¨ä¸ºç©ºï¼Œæ— æ³•åˆ é™¤èŠ‚ç‚¹ã€‚\n");
+        return; //è¿”å›
     }
-    visitor *p = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-    visitor *prev = NULL; //Ç°Ò»¸ö½Úµã
-    while (p != NULL) { //±éÀúÁ´±í
-        if (strcmp(p->id, id) == 0) { //Æ¥ÅäÑ§ºÅ
-            if (prev == NULL) { //Í·½Úµã
-                vis_list->head = p->next; //Í·½ÚµãÖ¸ÏòÏÂÒ»¸ö½Úµã
-            } else { //·ÇÍ·½Úµã
-                prev->next = p->next; //Ç°Ò»¸ö½ÚµãµÄÖ¸ÕëÖ¸ÏòÏÂÒ»¸ö½Úµã
+    visitor *p = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+    visitor *prev = NULL; //å‰ä¸€ä¸ªèŠ‚ç‚¹
+    while (p != NULL) { //éå†é“¾è¡¨
+        if (strcmp(p->id, id) == 0) { //åŒ¹é…å­¦å·
+            if (prev == NULL) { //å¤´èŠ‚ç‚¹
+                vis_list->head = p->next; //å¤´èŠ‚ç‚¹æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
+            } else { //éå¤´èŠ‚ç‚¹
+                prev->next = p->next; //å‰ä¸€ä¸ªèŠ‚ç‚¹çš„æŒ‡é’ˆæŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
             }
-            free(p); //ÊÍ·Å½Úµã
-            vis_list->size--; //Á´±í³¤¶È¼õÒ»
-            return; //·µ»Ø
+            free(p); //é‡Šæ”¾èŠ‚ç‚¹
+            vis_list->size--; //é“¾è¡¨é•¿åº¦å‡ä¸€
+            return; //è¿”å›
         }
-        prev = p; //±£´æµ±Ç°½Úµã
-        p = p->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+        prev = p; //ä¿å­˜å½“å‰èŠ‚ç‚¹
+        p = p->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
     }
 }
 
-//²éÕÒ½Úµã
+//æŸ¥æ‰¾èŠ‚ç‚¹
 visitor *find_node(char *id) {
-    visitor *node = vis_list->head; //´ÓÍ·½Úµã¿ªÊ¼
-    while (node != NULL) { //±éÀúÁ´±í
-        if (strcmp(node->id, id) == 0) { //Æ¥ÅäÑ§ºÅ
-            return node; //·µ»Ø½Úµã
+    visitor *node = vis_list->head; //ä»å¤´èŠ‚ç‚¹å¼€å§‹
+    while (node != NULL) { //éå†é“¾è¡¨
+        if (strcmp(node->id, id) == 0) { //åŒ¹é…å­¦å·
+            return node; //è¿”å›èŠ‚ç‚¹
         }
-        node = node->next; //Ö¸ÏòÏÂÒ»¸ö½Úµã
+        node = node->next; //æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
     }
-    return NULL; //Î´ÕÒµ½
+    return NULL; //æœªæ‰¾åˆ°
 }
 
-//´òÓ¡½Úµã
+//æ‰“å°èŠ‚ç‚¹
 void print_node(visitor *node) {
-    printf("Éí·İÖ¤ºÅ£º%s\n", node->id);
-    printf("ĞÕÃû£º%s\n", node->name);
-    printf("ĞÔ±ğ£º%s\n", node->sex);
-    printf("ÄêÁä£º%d\n", node->age);
-    printf("±¸×¢£º%s\n", node->remark);
+    printf("èº«ä»½è¯å·ï¼š%s\n", node->id);
+    printf("å§“åï¼š%s\n", node->name);
+    printf("æ€§åˆ«ï¼š%s\n", node->sex);
+    printf("å¹´é¾„ï¼š%d\n", node->age);
+    printf("å¤‡æ³¨ï¼š%s\n", node->remark);
     printf("**********\n");
 }
 
-//´òÓ¡²Ëµ¥
+//æ‰“å°èœå•
 void print_menu() {
-    printf("ÇëÑ¡ÔñÏµÍ³¹¦ÄÜÏî£º\n");
-    printf("a   ÓÎ¿Í»ù±¾ĞÅÏ¢Â¼Èë\n");
-    printf("b   ÓÎ¿Í»ù±¾ĞÅÏ¢ÏÔÊ¾\n");
-    printf("c   ÓÎ¿Í»ù±¾ĞÅÏ¢±£´æ\n");
-    printf("d   ÓÎ¿Í»ù±¾ĞÅÏ¢É¾³ı\n");
-    printf("e   ÓÎ¿Í»ù±¾ĞÅÏ¢ĞŞ¸Ä£¨ÒªÇóÏÈÊäÈëÃÜÂë£©\n");
-    printf("f   ÓÎ¿Í»ù±¾ĞÅÏ¢²éÑ¯\n");
-    printf("g   ÍË³öÏµÍ³\n");
-    printf("h   ĞŞ¸ÄÃÜÂë(ĞèÖØĞÂµÇÂ½ÏµÍ³)\n");
+    printf("è¯·é€‰æ‹©ç³»ç»ŸåŠŸèƒ½é¡¹ï¼š\n");
+    printf("a   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯å½•å…¥\n");
+    printf("b   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯æ˜¾ç¤º\n");
+    printf("c   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯ä¿å­˜\n");
+    printf("d   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯åˆ é™¤\n");
+    printf("e   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯ä¿®æ”¹ï¼ˆè¦æ±‚å…ˆè¾“å…¥å¯†ç ï¼‰\n");
+    printf("f   æ¸¸å®¢åŸºæœ¬ä¿¡æ¯æŸ¥è¯¢\n");
+    printf("g   é€€å‡ºç³»ç»Ÿ\n");
+    printf("h   ä¿®æ”¹å¯†ç (éœ€é‡æ–°ç™»é™†ç³»ç»Ÿ)\n");
 }
 
-//¼ì²éÃÜÂë
+//æ£€æŸ¥å¯†ç 
 int check_password() {
-    char input[20]; //ÓÃ»§ÊäÈëµÄÃÜÂë
-    int count = 0; //³¢ÊÔ´ÎÊı
+    char input[20]; //ç”¨æˆ·è¾“å…¥çš„å¯†ç 
+    int count = 0; //å°è¯•æ¬¡æ•°
     while (1) {
-        printf("ÇëÊäÈëÃÜÂë£º\n");
-        scanf("%s", input); //ÊäÈëÃÜÂë
-        getchar(); //Çå³ı»º³åÇøµÄ»»ĞĞ·û
-        if (strcmp(input, password) == 0) { //ÃÜÂëÕıÈ·
-            printf("ÃÜÂëÕıÈ·£¬»¶Ó­½øÈëÏµÍ³¡£\n");
-            return 1; //Ìø³öÑ­»·
-        } else { //ÃÜÂë´íÎó
-            printf("ÃÜÂë´íÎó£¬ÇëÖØĞÂÊäÈë¡£\n");
-            count++; //¼ÆÊı¼ÓÒ»
-            if (count == 3) { //³¢ÊÔ´ÎÊı´ïµ½3´Î
-                printf("ÄúÒÑ¾­Á¬ĞøÊäÈë´íÎó3´Î£¬ÎŞ·¨µÇÈëÏµÍ³¡£\n");
-                exit(EXIT_FAILURE); //ÍË³ö³ÌĞò
+        printf("è¯·è¾“å…¥å¯†ç ï¼š\n");
+        scanf("%s", input); //è¾“å…¥å¯†ç 
+        getchar(); //æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
+        if (strcmp(input, password) == 0) { //å¯†ç æ­£ç¡®
+            printf("å¯†ç æ­£ç¡®ï¼Œæ¬¢è¿è¿›å…¥ç³»ç»Ÿã€‚\n");
+            return 1; //è·³å‡ºå¾ªç¯
+        } else { //å¯†ç é”™è¯¯
+            printf("å¯†ç é”™è¯¯ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\n");
+            count++; //è®¡æ•°åŠ ä¸€
+            if (count == 3) { //å°è¯•æ¬¡æ•°è¾¾åˆ°3æ¬¡
+                printf("æ‚¨å·²ç»è¿ç»­è¾“å…¥é”™è¯¯3æ¬¡ï¼Œæ— æ³•ç™»å…¥ç³»ç»Ÿã€‚\n");
+                exit(EXIT_FAILURE); //é€€å‡ºç¨‹åº
             }
         }
     }
 }
 
-int check_password_strength(char*password) {//¶ÔÃÜÂëÇ¿¶ÈµÄ¼ì²â
+int check_password_strength(char*password) {//å¯¹å¯†ç å¼ºåº¦çš„æ£€æµ‹
     int length = strlen(password);
     int has_lower = 0;
     int has_upper = 0;
@@ -617,11 +899,11 @@ int check_password_strength(char*password) {//¶ÔÃÜÂëÇ¿¶ÈµÄ¼ì²â
         }
     }
     if (length < 8 || !(has_lower && has_upper && has_digit && has_special)) {
-        return 0;//Èõ
+        return 0;//å¼±
     } else if (length < 12 || !(has_lower && has_upper && has_digit && has_special)) {
-        return 1;//ÖĞµÈ
+        return 1;//ä¸­ç­‰
     } else {
-        return 2;//Ç¿
+        return 2;//å¼º
     }
 }
 
@@ -631,30 +913,30 @@ void modify_password(char *password)
     int count = 0;
     char verify_password[20];
     char temp[20];
-    printf("ÇëÊäÈëÔ­ÏÈµÄÃÜÂë: \n");
+    printf("è¯·è¾“å…¥åŸå…ˆçš„å¯†ç : \n");
     scanf("%s",verify_password);
-    getchar(); // Çå³ı»º³åÇøµÄ»»ĞĞ·û
+    getchar(); // æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
     while(1)
     {
         if (strcmp(verify_password, password) == 0)
-        { // ÃÜÂëÕıÈ·
-            printf("ÇëÊäÈëĞÂµÄÃÜÂë£º\n");
+        { // å¯†ç æ­£ç¡®
+            printf("è¯·è¾“å…¥æ–°çš„å¯†ç ï¼š\n");
             scanf("%s",temp);
             strcpy(password,temp);
-            break; // Ìø³öÑ­»·
+            break; // è·³å‡ºå¾ªç¯
         } 
-        else{ // ÃÜÂë´íÎó
-            printf("ÃÜÂë´íÎó£¬ÇëÖØĞÂÊäÈë¡£\n");
+        else{ // å¯†ç é”™è¯¯
+            printf("å¯†ç é”™è¯¯ï¼Œè¯·é‡æ–°è¾“å…¥ã€‚\n");
             count++; 
-            // ¼ÆÊı¼ÓÒ»
+            // è®¡æ•°åŠ ä¸€
             if (count == 3)
-            { // ³¢ÊÔ´ÎÊı´ïµ½3´Î
-                printf("ÄúÒÑÁ¬ĞøÊäÈë´íÎó3´Î£¬ÎŞ·¨ĞŞ¸ÄÃÜÂë¡£\n");
-                return; // ÍË³öº¯Êı
+            { // å°è¯•æ¬¡æ•°è¾¾åˆ°3æ¬¡
+                printf("æ‚¨å·²è¿ç»­è¾“å…¥é”™è¯¯3æ¬¡ï¼Œæ— æ³•ä¿®æ”¹å¯†ç ã€‚\n");
+                return; // é€€å‡ºå‡½æ•°
             }
-            printf("ÇëÊäÈëÔ­ÏÈµÄÃÜÂë: \n");
+            printf("è¯·è¾“å…¥åŸå…ˆçš„å¯†ç : \n");
             scanf("%s",verify_password);
-            getchar(); // Çå³ı»º³åÇøµÄ»»ĞĞ·û
+            getchar(); // æ¸…é™¤ç¼“å†²åŒºçš„æ¢è¡Œç¬¦
         }
     }
     check_password();
