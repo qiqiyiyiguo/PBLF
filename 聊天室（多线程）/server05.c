@@ -9,24 +9,24 @@
 
 typedef struct {
     SOCKET socket;
-    CRITICAL_SECTION cs; // ÓÃÓÚÍ¬²½µÄÁÙ½çÇø
-    char sendBuffer[BUFFER_SIZE]; // ·¢ËÍ»º³åÇø
-    BOOL sendPending; // ÊÇ·ñÓĞ´ı·¢ËÍÊı¾İ
+    CRITICAL_SECTION cs; // ç”¨äºåŒæ­¥çš„ä¸´ç•ŒåŒº
+    char sendBuffer[BUFFER_SIZE]; // å‘é€ç¼“å†²åŒº
+    BOOL sendPending; // æ˜¯å¦æœ‰å¾…å‘é€æ•°æ®
 } thread_data;
 
-// ¿Í»§¶ËÁĞ±í
+// å®¢æˆ·ç«¯åˆ—è¡¨
 SOCKET client_list[MAX_CLIENTS];
-thread_data client_data[MAX_CLIENTS]; // Ã¿¸ö¿Í»§¶ËµÄÏß³ÌÊı¾İ
+thread_data client_data[MAX_CLIENTS]; // æ¯ä¸ªå®¢æˆ·ç«¯çš„çº¿ç¨‹æ•°æ®
 int client_count = 0;
 
-// ÁÙ½çÇø¶ÔÏó£¬ÓÃÓÚÍ¬²½¶Ô¿Í»§¶ËÁĞ±íµÄ·ÃÎÊ
+// ä¸´ç•ŒåŒºå¯¹è±¡ï¼Œç”¨äºåŒæ­¥å¯¹å®¢æˆ·ç«¯åˆ—è¡¨çš„è®¿é—®
 CRITICAL_SECTION clientListCS;
 
 DWORD WINAPI SendThread(LPVOID param) {
     thread_data* data = (thread_data*)param;
 
     while (1) {
-        EnterCriticalSection(&data->cs); // ½øÈëÁÙ½çÇø
+        EnterCriticalSection(&data->cs); // è¿›å…¥ä¸´ç•ŒåŒº
         if (data->sendPending) {
             int sent = send(data->socket, data->sendBuffer, (int)strlen(data->sendBuffer), 0);
             if (sent == SOCKET_ERROR) {
@@ -35,11 +35,11 @@ DWORD WINAPI SendThread(LPVOID param) {
             else {
                 printf("Message sent: %s\n", data->sendBuffer);
             }
-            memset(data->sendBuffer, 0, BUFFER_SIZE); // Çå¿Õ·¢ËÍ»º³åÇø
-            data->sendPending = FALSE; // ÖØÖÃ·¢ËÍ±êÖ¾
+            memset(data->sendBuffer, 0, BUFFER_SIZE); // æ¸…ç©ºå‘é€ç¼“å†²åŒº
+            data->sendPending = FALSE; // é‡ç½®å‘é€æ ‡å¿—
         }
-        LeaveCriticalSection(&data->cs); // Àë¿ªÁÙ½çÇø
-        Sleep(100); // ±ÜÃâCPUÕ¼ÓÃ¹ı¸ß
+        LeaveCriticalSection(&data->cs); // ç¦»å¼€ä¸´ç•ŒåŒº
+        Sleep(100); // é¿å…CPUå ç”¨è¿‡é«˜
     }
     return 0;
 }
@@ -69,11 +69,11 @@ DWORD WINAPI ReceiveThread(LPVOID param) {
 void SendToClient(int client_index, const char* message) {
     if (client_index >= 0 && client_index < client_count) {
         thread_data* data = &client_data[client_index];
-        EnterCriticalSection(&data->cs); // ½øÈëÁÙ½çÇø
+        EnterCriticalSection(&data->cs); // è¿›å…¥ä¸´ç•ŒåŒº
         strncpy_s(data->sendBuffer, BUFFER_SIZE, message, BUFFER_SIZE - 1);
         data->sendBuffer[BUFFER_SIZE - 1] = '\0'; // Ensure null-terminated string
         data->sendPending = TRUE;
-        LeaveCriticalSection(&data->cs); // Àë¿ªÁÙ½çÇø
+        LeaveCriticalSection(&data->cs); // ç¦»å¼€ä¸´ç•ŒåŒº
     }
 }
 
@@ -85,7 +85,7 @@ void ProcessCommands() {
 
     while (1) {
         printf("Enter command (send <client_index> <message> or exit): ");
-        fflush(stdout); // È·±£ÃüÁîĞĞÌáÊ¾·û±»Á¢¼´´òÓ¡
+        fflush(stdout); // ç¡®ä¿å‘½ä»¤è¡Œæç¤ºç¬¦è¢«ç«‹å³æ‰“å°
         fgets(command, sizeof(command), stdin);
         if (strcmp(command, "exit\n") == 0) {
             break;
@@ -113,7 +113,7 @@ DWORD WINAPI thread_func(LPVOID lpThreadParameter) {
     free(lpThreadParameter);
 
     int client_index;
-    EnterCriticalSection(&clientListCS); // ½øÈëÁÙ½çÇø
+    EnterCriticalSection(&clientListCS); // è¿›å…¥ä¸´ç•ŒåŒº
     for (client_index = 0; client_index < client_count; ++client_index) {
         if (client_list[client_index] == INVALID_SOCKET) {
             client_list[client_index] = client_socket;
@@ -124,7 +124,7 @@ DWORD WINAPI thread_func(LPVOID lpThreadParameter) {
         client_list[client_count] = client_socket;
         client_count++;
     }
-    LeaveCriticalSection(&clientListCS); // Àë¿ªÁÙ½çÇø
+    LeaveCriticalSection(&clientListCS); // ç¦»å¼€ä¸´ç•ŒåŒº
 
     thread_data* data = &client_data[client_index];
     InitializeCriticalSection(&data->cs);
@@ -149,7 +149,7 @@ int main() {
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    InitializeCriticalSection(&clientListCS); // ³õÊ¼»¯ÁÙ½çÇø
+    InitializeCriticalSection(&clientListCS); // åˆå§‹åŒ–ä¸´ç•ŒåŒº
 
     SOCKET server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (INVALID_SOCKET == server_socket) {
@@ -181,7 +181,7 @@ int main() {
         WSACleanup();
         return -1;
     }
-    CloseHandle(commandThread); // ¹Ø±ÕÃüÁîÏß³Ì¾ä±ú
+    CloseHandle(commandThread); // å…³é—­å‘½ä»¤çº¿ç¨‹å¥æŸ„
 
     while (1) {
         SOCKET client_socket = accept(server_socket, NULL, NULL);
@@ -205,12 +205,12 @@ int main() {
             free(sockfd);
             continue;
         }
-        CloseHandle(thread); // ¹Ø±ÕÏß³Ì¾ä±ú
+        CloseHandle(thread); // å…³é—­çº¿ç¨‹å¥æŸ„
     }
 
-    // Õâ¸öÑ­»·ÊÇÎŞÏŞµÄ£¬µ«ÎªÁËÍêÕûĞÔ£¬³ÌĞò½áÊøÇ°Ó¦¸ÃÇåÀí×ÊÔ´
+    // è¿™ä¸ªå¾ªç¯æ˜¯æ— é™çš„ï¼Œä½†ä¸ºäº†å®Œæ•´æ€§ï¼Œç¨‹åºç»“æŸå‰åº”è¯¥æ¸…ç†èµ„æº
     closesocket(server_socket);
     WSACleanup();
-    DeleteCriticalSection(&clientListCS); // É¾³ıÁÙ½çÇø
+    DeleteCriticalSection(&clientListCS); // åˆ é™¤ä¸´ç•ŒåŒº
     return 0;
 }
