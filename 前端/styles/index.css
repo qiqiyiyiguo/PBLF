@@ -12,8 +12,8 @@ body{
 }
 
 .foot{
-    margin-top:21%;
-    padding-bottom: 0;
+    margin-top:17%;
+    
     width:auto;
     border-width: 1px;
     color:rgb(0, 3, 5);
@@ -32,6 +32,7 @@ h1{
     padding:10% 0 0 0;
     font-family: fangzheng;
     letter-spacing: 20%;
+    
 }
 h2{
     width:100%;
@@ -41,6 +42,7 @@ h2{
     text-align: center;
     font-family: agaea;
     font-size: 300%;
+    margin-top:-5%;
 }
 
 .enter {
@@ -74,6 +76,45 @@ h2{
     }
 }
 
+.consult{
+    float:left;
+    margin-left: 95%;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    height: 60px;
+    /* 手风琴效果就是鼠标悬浮宽度过渡 */
+    width: 60px;
+    /* 超出隐藏，因为要把伪元素文字遮挡住 */
+    overflow: hidden;
+    background: #fff;
+    border-radius: 30px;
+    box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.24);
+    transition: all 0.5s;
+}
+
+.mask{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(78, 78, 78, 0.747);
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    border-radius: 30px;
+}
+
+.consult:hover .mask{
+    opacity: 1;
+    word-break: break-all;
+    font-size: 80%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#ffffff;
+    text-align: center;
+    padding-top: 30%;
+}
 
 /* 通用部分 */
 ico{

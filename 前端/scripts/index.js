@@ -14,4 +14,7 @@ function clickAfter(who) {
     else if(who==='首页'){
         window.location.href = "./index.html"
     }
+    else if(who==='consult'){
+        window.location.href = "./consult.html"
+    }
 }
