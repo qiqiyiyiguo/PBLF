@@ -20,17 +20,16 @@ typedef struct node {
     int year; 
     long long int phonenumber;
     char campus_name[LENGTH];
-    int booked;    
     struct node *next;
 } Appointment;
 
 typedef struct {
     char user_name[LEN];
-    long int user_id;
-    long int password;
+    char user_id[50];
+    char password[50];
 } User;
 
-User user[MAX_USERS];
+User user[MAX_USERS]; 
 Appointment *head = NULL;
 Appointment res[MAX_RESERVER];
 char campus_name[2][13] = {"QING SHUI HE", "SHA HE"};
@@ -71,10 +70,10 @@ void registerUser() { // 注册用户
     fun(user[userNumber].user_name);
     printf("\n");
     printf("Enter your ID: ");
-    scanf("%ld", &user[userNumber].user_id);
+    scanf("%s", user[userNumber].user_id);
     while (getchar() != '\n'); // 清除缓冲区
-    printf("Enter your password(6个数字): ");
-    scanf("%ld", &user[userNumber].password);
+    printf("Enter your password: ");
+    scanf("%s", user[userNumber].password);
     while (getchar() != '\n'); // 清除缓冲区 
     printf("User registered successfully.\n");
     userNumber++;
@@ -86,15 +85,19 @@ void insert_appointment() { // 预约
         printf("The booking is invalid!");
         return;
     }
+	if ( reserver>= MAX_RESERVER) {
+        printf("Reserver limit reached.\n");
+        return;
+    }
     char Campusname[LEN];
-    long int ID;
+    char ID[50];
     int i, j, IDfound = 0, Campusfound = 0;
     printf("Enter the ID of user: ");
-    scanf("%ld", &ID);
+    scanf("%s", ID);
     getchar();
     printf("\n");
     for (i = 0; i < userNumber; i++) {
-        if (user[i].user_id == ID) {
+        if (strcmp(user[i].user_id,ID)==0) {
             printf("Find the user!\n");
             IDfound = 1;
             break;
@@ -190,7 +193,7 @@ void check_appointment() { // 检查预约是否成功
     fun(name);
     for (i = 0; i < userNumber; i++) {
         if (strcmp(user[i].user_name, name) == 0) {
-            printf("Username: %s\tID: %ld\n", user[i].user_name, user[i].user_id);
+            printf("Username: %s\tID: %s\n", user[i].user_name, user[i].user_id);
             for (j = 0; j < reserver; j++) {
                 if (strcmp(res[j].userName, name) == 0) {
                     printf("Reservation found: starthour: %d endhour: %d\nDate: day: %d, month: %d, year: %d\nphonenumber: %lld\n",
