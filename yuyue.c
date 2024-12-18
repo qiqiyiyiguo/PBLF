@@ -89,8 +89,9 @@ void insert_appointment() { // 预约
         printf("Reserver limit reached.\n");
         return;
     }
-    char Campusname[LEN];
-    char ID[50];
+    char Campusname[LENGTH];
+    char ID[LEN];
+    char username[LEN];
     int i, j, IDfound = 0, Campusfound = 0;
     printf("Enter the ID of user: ");
     scanf("%s", ID);
@@ -98,16 +99,27 @@ void insert_appointment() { // 预约
     printf("\n");
     for (i = 0; i < userNumber; i++) {
         if (strcmp(user[i].user_id,ID)==0) {
-            printf("Find the user!\n");
+            printf("Find the user!\n");    
             IDfound = 1;
             break;
         }
     }
+    printf("Please enter the name of user:");
+	fgets(username,LEN,stdin);
+    username[strcspn(username,"\n")]=0;
+    fun(username);
+	for(i=0;i<reserver;i++){
+    	if(strcmp(res[i].userName,username)==0){
+    		printf("该用户已预约\n");
+			return;
+		}
+	}
+	printf("该用户第一次预约\n");
     if (!IDfound) {
         printf("Not find such a user!\n");
         free(p);
         return;
-    }
+}
     printf("Enter the name of campus: ");
     fgets(Campusname, LEN, stdin);
     Campusname[strcspn(Campusname, "\n")] = 0; // 确保字符串以空字符结尾
@@ -257,6 +269,23 @@ void cancel_appointment() { // 取消预约
         }
     }
 }
+
+void delete_user(){         //删除用户 
+    char ID[LEN];
+	printf("Enter your ID:");
+	fgets(ID,LEN,stdin);
+	ID[strcspn(ID,"\n")]=0;
+	int i,j;
+	for(i=0;i<userNumber;i++){
+		if(strcmp(user[i].user_id,ID)==0){
+	for(j=i;j<userNumber-1;j++){
+		user[j]=user[j+1];
+	}
+	userNumber--;
+	break;		
+		}
+	} 
+} 
 int main() {
 	int choice;
 	do{  
