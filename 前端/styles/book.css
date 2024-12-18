@@ -4,6 +4,11 @@ body{
     margin: 0% 0% 0% 0%;
     height:100%;
     border-width: 1px;
+
+    background-image:linear-gradient(to right, #acb6e5 , #86fde8);
+    font-family: var(--font-family);
+    overflow: hidden;
+    
 }
 
 
@@ -52,6 +57,16 @@ ico>img{
 @font-face{
     font-family: kaiti;
     src:url('../fonts/方正苏新诗柳楷简体.TTF')
+}
+
+@font-face {
+  font-family: yingyuyuan;
+  src: url('../fonts/Cooperli.TTF');
+}
+
+@font-face {
+  font-family: yuanti;
+  src: url('../fonts/简超圆.TTF');
 }
 
 /* 以下是页签的样式 */
@@ -195,198 +210,377 @@ ico>img{
 }
 
 
-/* 以下是要修正的部分 */
-
-* {
-    margin: 0;
+:root {
+    --dark-text: #f8fbff;
+    --light-body: #f3f8fe;
+    --light-main: #fdfdfd;
+    --light-second: #c3c2c8;
+    --light-hover: #f0f0f0;
+    --light-text: #151426;
+    --light-btn: #9796f0;
+    --blue: #0000ff;
+    --white: #fff;
+    --shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+    --font-family: consolas;
+  }
+  * {
     padding: 0;
+    margin: 0;
     box-sizing: border-box;
-    font-family: "Montserrat", sans-serif;
   }
-  
-  
-  
-  .calendar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  .calendar_left {
-    background: linear-gradient(#c4f185, #86d2f3);
-    width: 400px;
-    height: 415px;
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    padding: 1.5em;
-    z-index: 1;
-  }
-  .calendar_left .header {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 2em;
-    color: #FFF;
-    font-size: 0.7em;
-  }
-  .calendar_left .header h1 {
-    line-height: 1em;
-  }
-  .calendar_left .header i {
-    cursor: pointer;
-  }
-  .calendar_right {
-    background: linear-gradient(#c4f185, #86d2f3);
-    width: 350px;
-    height: 415px;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+
+  .contianer {
+    width: max-content;
+    height: max-content;
     position: relative;
-    transform: scale(0.95) translateX(-10px);
-    z-index: 0;
-  }
-  .calendar_right .list {
-    height: 351px;
-    overflow-y: scroll;
-    padding: 1em;
-  }
-  .calendar_right .list ul {
-    padding: 2.25em;
-  }
-  .calendar_right .list li {
-    padding: 1em;
-    width: 180px;
-    color: #FFF;
-    transform: translateX(-700px);
-  }
-  .calendar_right .list .description {
-    font-size: 12px;
-  }
-  .calendar_right form {
-    position: absolute;
-    bottom: 0;
     display: flex;
+    padding: 2% 0px 0px 0px;
+    justify-content: center;
+    top: 10%;
+    right: 0%;
     width: 100%;
+    height: 100%;
+  }
+  .calendar {
+    height: 610px;
+    width: max-content;
+    background-color: white;
+    border-radius: 25px;
+    overflow: hidden;
+    padding: 30px 50px 0px 50px;
+  }
+  .calendar {
+    box-shadow: var(--shadow);
+  }
+  .calendar-header {
+    background: #9796f0;
     display: flex;
-    flex-flow: row wrap;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    color: var(--white);
+    padding: 10px;
   }
-  .calendar_right input {
-    background: #68c9f0;
-    border: none;
-    padding: 1.2em;
-    flex: 2;
-    outline: none;
-    color: #FFF;
-    border-bottom-right-radius: 5px;
+  .calendar-body {
+    pad: 10px;
   }
-  .calendar_right select {
-    background: #5d97ad;
-    border: none;
-    padding: 1.2em;
-    outline: none;
-    color: #FFF;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 5px;
-    -webkit-appearance: none;
-       -moz-appearance: none;
-            appearance: none;
-  }
-  
-  .days {
-    display: flex;
-    justify-content: flex-start;
-    width: 400px;
-  }
-  .days .day_item {
-    color: #FFF;
-    width: 50px;
-    text-align: center;
-    padding-bottom: 1em;
-  }
-  
-  .dates {
-    display: flex;
-    justify-content: flex-start;
-    flex-flow: row wrap;
-    width: 350px;
-  }
-  .dates .date_item {
-    color: #FFF;
-    width: 50px;
-    text-align: center;
-    height: 50px;
-    padding: 1em;
+  .calendar-week-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-weight: 600;
     cursor: pointer;
-    border-radius: 100%;
+    color:rgb(104, 104, 104);
   }
-  
-  .present {
-    background: #FFF;
-    transform: scale(0.7);
-    border-radius: 50px;
-    padding: 0.95em !important;
-    color: #6bc5e9 !important;
-    z-index: 0;
-    box-shadow: 10px 10px 5px #7acbeb;
-    -webkit-animation: bounce-button-in 0.45s 0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            animation: bounce-button-in 0.45s 0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  .calendar-week-days div:hover {
+  color:black;
+  transform: scale(1.2);
+  transition: all .2s ease-in-out;
   }
-  
-  ::-webkit-scrollbar {
-    display: none;
+  .calendar-week-days div {
+    display: grid;
+    place-items: center;
+    color: var(--bg-second);
+    height: 50px;
   }
-  
-  ::-webkit-input-placeholder {
-    color: #FFF;
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    color: var(--color-txt);
   }
-  
-  .bounce-in.ng-animate {
-    -webkit-animation: none 0s;
-            animation: none 0s;
+  .calendar-days div {
+    width: 37px;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    position: relative;
+    cursor: pointer;
+    animation: to-top 1s forwards;
   }
-  
-  .bounce-in {
-    -webkit-animation: bounce-in 0.9s 0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            animation: bounce-in 0.9s 0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  .month-picker {
+    padding: 5px 10px;
+    border-radius: 10px;
+    cursor: pointer;
   }
-  
-  @-webkit-keyframes bounce-in {
-    50% {
-      transform: translateX(0);
-    }
-    75% {
-      transform: translateX(7px);
-    }
-    100% {
-      transform: translateX(2px);
-    }
+  .month-picker:hover {
+    background-color: var(--color-hover);
   }
-  
-  @keyframes bounce-in {
-    50% {
-      transform: translateX(0);
-    }
-    75% {
-      transform: translateX(7px);
-    }
-    100% {
-      transform: translateX(2px);
-    }
+  .month-picker:hover {
+    color: var(--color-txt);
   }
-  @-webkit-keyframes bounce-button-in {
+  .year-picker {
+    display: flex;
+    align-items: center;
+  }
+  .year-change {
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: 0px 10px;
+    cursor: pointer;
+  }
+  .year-change:hover {
+    background-color: var(--light-btn);
+    transition:all .2s ease-in-out ;
+    transform: scale(1.12);
+  }
+  .year-change:hover pre {
+    color: var(--bg-body);
+  }
+  .calendar-footer {
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  #year:hover{
+    cursor: pointer;
+    transform: scale(1.2);
+    transition: all 0.2 ease-in-out;
+  }
+  .calendar-days div span {
+    position: absolute;
+  }
+   .calendar-days div:hover {
+    transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
+    background-color: #fbc7d4;
+    border-radius: 20%;
+    color: var(--dark-text);
+  }
+  .calendar-days div.current-date {
+    color: var(--dark-text);
+    background-color: var(--light-btn);
+    border-radius: 20%;
+  }
+  .month-list {
+    position: relative;
+    left: 0;
+    top:-250px;
+    background-color: #ebebeb;
+    color: var(--light-text);
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 5px;
+    border-radius: 20px;
+  }
+  .month-list > div {
+    display: grid;
+    place-content: center;
+    margin: 5px 10px;
+    transition: all 0.2s ease-in-out;
+  }
+  .month-list > div > div {
+    border-radius: 15px;
+    padding: 10px;
+    cursor: pointer;
+  }
+  .month-list > div > div:hover {
+    background-color:var(--light-btn);
+    color: var(--dark-text);
+    transform: scale(0.9);
+    transition: all 0.2s ease-in-out;
+  }
+  .month-list.show {
+    visibility: visible;
+    pointer-events: visible;
+    transition: 0.6s ease-in-out;
+    animation: to-left .71s forwards;
+  }
+  .month-list.hideonce{
+    visibility: hidden;
+  }
+  .month-list.hide {
+    animation: to-right 1s forwards;
+    visibility: none;
+    pointer-events: none;
+  }
+  .date-time-formate {
+    width: 100%;
+    height: 50%;
+    
+    position: relative;
+    display: grid;
+    grid-template-areas: 'time''campus''button';
+    top:60px;
+    
+  }
+  .submitbutton{
+    grid-area: button;
+    height: 50px;
+    width:100px;
+    margin-left: 120px;
+    margin-top: -60px;
+    font-family: yingyuyuan;
+    border: none;
+    border-radius: 10%;
+    letter-spacing: 2px;
+    font-size: 100%;
+    background-color: #46cdcf;
+  }
+  .day-text-formate {
+    font-family: consolas;
+    font-size: 100%;
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-area: time;
+    align-items: center;
+    justify-items: center;
+    gap:5px;
+    margin-left: -10px;
+  }
+  /* 为时间框添加基本样式 */
+.time {
+    padding: 5px 10px;
+    cursor: pointer;
+    margin: 2px;
+    display: inline-block;
+    border-radius: 5px;
+}
+
+/* 高亮显示选中的时间 */
+.highlighted {
+    background-color: #cadefc; /* 高亮 */
+}
+
+/* 选中状态的时间样式 */
+.timeselected {
+    background-color: #46cdcf; /* 蓝色 */
+    color: white;
+}
+
+/* 鼠标悬停效果 */
+.time:hover {
+    background-color: #defcf9;
+    color:black;
+}
+
+  .campus-choose {
+    margin-top:50px;
+    margin-left: 20px;
+    width: 300px;
+    position: relative;
+    top: -18px;
+    text-align: center;
+    grid-area: campus;
+    display: grid;
+    gap:20%;
+    grid-template-columns: repeat(2,1fr);
+    height: 50px;
+    
+  }
+  .selectedCampus{
+    background-color: #cbf1f5;
+  }
+  #btn1{
+    font-size: 100%;
+    border-radius: 20px;
+    border: none;
+    font-family: yuanti;
+    letter-spacing: 4px;
+    justify-content: center;
+  }
+  #btn2{
+    font-size: 100%;
+    border-radius: 20px;
+    border: none;
+    font-family: yuanti;
+    letter-spacing: 2px;
+    padding-left: 3px;
+  }
+  #btn1.hideTime {
+    animation: hidetime 1.5s forwards;
+  }
+  .day-text-formate.hidetime {
+    animation: hidetime 1.5s forwards;
+  }
+  #btn2.hideTime {
+    animation: hidetime 1.5s forwards;
+  }
+  .submitbutton.hideTime {
+    animation: hidetime 1.5s forwards;
+  }
+  .day-text-formate.showtime{
+    animation: showtime 1s forwards;
+  }
+  #btn1.showtime {
+    animation: showtime 1s forwards;
+  }
+  #btn2.showtime {
+    animation: showtime 1s forwards;
+  }
+  .submitbutton.showtime {
+    animation: showtime 1s forwards;
+  }
+  @keyframes to-top {
     0% {
-      transform: translateZ(0) scale(0);
+      transform: translateY(0);
+      opacity: 0;
     }
     100% {
-      transform: translateZ(0) scale(0.7);
+      transform: translateY(100%);
+      opacity: 1;
     }
   }
-  @keyframes bounce-button-in {
+  @keyframes to-left {
     0% {
-      transform: translateZ(0) scale(0);
+      transform: translatex(230%);
+      opacity: 1;
     }
     100% {
-      transform: translateZ(0) scale(0.7);
+      transform: translatex(0);
+      opacity: 1;
     }
   }
+  @keyframes to-right {
+    10% {
+      transform: translatex(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translatex(-150%);
+      opacity: 1;
+    }
+  }
+  @keyframes showtime {
+    0% {
+      transform: translatex(250%);
+      opacity: 1;
+    }
+    100% {
+      transform: translatex(0%);
+      opacity: 1;
+    }
+  }
+  @keyframes hidetime {
+    0% {
+      transform: translatex(0%);
+      opacity: 1;
+    }
+    100% {
+      transform: translatex(-370%);
+      opacity: 1;
+    }
+  }
+  @media (max-width:375px) {
+    .month-list>div{
+  
+      margin: 5px 0px;
+    }
+  }
+
+/* 禁用的日期样式 */
+.disabled {
+    pointer-events: none; /* 禁止点击 */
+    color: gray; /* 文字颜色变灰 */
+}
+
+/* 当前选中日期的样式 */
+.selected {
+    background-color: #cca8e9; /* 背景颜色为紫色 */
+    color: white; /* 文字颜色为白色 */
+}
