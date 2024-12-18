@@ -1,0 +1,28 @@
+h1{
+    color: rgb(111, 111, 111);
+    font-family: '楷体';
+    padding: 15px;
+}
+
+input{
+    margin-left:5%;
+    margin-top: 220px;
+    width: 480px; height: 25px;
+    border-color: #ffffff;border-radius: 10px;
+    border:none;
+    box-shadow: 5px 5px 10px #888;
+}
+
+button{
+    padding: 8px 15px;
+    background-color: #57a4f7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+main{
+    width: 600px;height: 600px;margin: auto;position: relative;top:100px;bottom: 50px;
+    border:solid, rgb(255, 255, 255);border-radius: 40px;box-shadow: 5px 5px 10px #888;
+  }
