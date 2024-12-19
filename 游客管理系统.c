@@ -2,6 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include<ctype.h>
+#include<stdbool.h>
+
+
+#define LEN 50
+#define MAX_NAME_LEN 50
+#define MAX_USERS 1000
+#define MAX_RESERVER 800
 
 //定义了一个名为visitor的结构体，用于存储游客的信息
 typedef struct visitor {
@@ -9,9 +16,23 @@ typedef struct visitor {
     char name[20]; //姓名
     char sex[2]; //性别
     int age; //年龄
+    char password[50];
     char remark[100]; //备注
     struct visitor *next; //指向下一个节点的指针
 } visitor;
+ 
+//定义了一个名为Appointment的结构体，由于存储游客预约信息
+typedef struct node {
+    char userName[LEN];
+    int startHour;
+    int endHour;
+    int month;
+    int day;
+    int year;
+    long long int phonenumber;
+    char campus_name[LENGTH];
+    struct node* next;
+} Appointment;
 
 //定义链表结构体
 typedef struct list {//定义了一个名为list的结构体，用于存储链表的头节点和长度
@@ -19,6 +40,13 @@ typedef struct list {//定义了一个名为list的结构体，用于存储链�
     int size; //链表的长度
 } list;
 
+visitor user[MAX_USERS];
+int userNumber = 0;
+Appointment* head = NULL;
+Appointment res[MAX_RESERVER];
+char campus_name[2][13] = { "QING SHUI HE", "SHA HE" };
+int userNumber = 0;
+int reserver = 0;
 //定义全局变量
 list *vis_list; //游客链表
 char filename[] = "visitor.txt"; //保存游客信息的文件名
@@ -42,6 +70,11 @@ void print_menu(); //打印菜单
 int check_password(); //检查密码
 void modify_password(char *password);
 void check_password_strength(char*password);//检查密码强度
+void  fun(char* p);
+bool is_leapYear(int year);//判断闰年
+void insert_appointment()；//预约
+void check_appointment()；// 检查预约是否成功
+void delete_user();//删除用户
 
 //主函数
 int main() {
@@ -117,7 +150,7 @@ void init_list() {
     visitor *node; //临时节点
     while (1) {
         node = create_node(); //创建节点
-        if (fscanf(fp, "%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark) == EOF) { //读取文件到节点
+        if (fscanf(fp, "%s %s %s %d %s %s\n", node->id, node->name, node->sex, &node->age, node->remark,node->password) == EOF) { //读取文件到节点
             free(node); //释放节点
             break; //跳出循环
         }
@@ -145,9 +178,9 @@ void insert_node(visitor *node) {
 //录入学生信息
 void input_info() {
     printf("请输入游客的基本信息，以空格分隔，以回车结束。\n");
-    printf("格式：身份证号 姓名 性别 年龄 备注\n");
+    printf("格式：身份证号 姓名 性别 年龄 备注 密码\n");
     visitor *node = create_node(); //创建节点
-    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //输入信息到节点
+    scanf("%s %s %s %d %s %s", node->id, node->name, node->sex, &node->age, node->remark,node->password); //输入信息到节点
     getchar(); //清除缓冲区的换行符
     if (find_node(node->id) != NULL) { //查找是否已存在相同学号的节点
         printf("该身份证号已存在，无法录入。\n");
@@ -155,6 +188,7 @@ void input_info() {
         return; //返回
     }
     insert_node(node); //插入节点
+    userNumber++;
     printf("已成功录入游客信息。\n");
 }
 
@@ -185,7 +219,7 @@ void save_info() {
     }
     visitor *node = vis_list->head; //从头节点开始
     while (node != NULL) { //遍历链表
-        fprintf(fp, "%s %s %s %d %s\n", node->id, node->name, node->sex, node->age, node->remark); //写入文件
+        fprintf(fp, "%s %s %s %d %s %s\n", node->id, node->name, node->sex, node->age, node->remark,node->password); //写入文件
         node = node->next; //指向下一个节点
     }
     fclose(fp); //关闭文件
@@ -228,8 +262,8 @@ void modify_info() {
         return; //返回
     }
     printf("请输入游客的新信息，以空格分隔，以回车结束。\n");
-    printf("格式：身份证号 姓名 性别 年龄 备注\n");
-    scanf("%s %s %s %d %s", node->id, node->name, node->sex, &node->age, node->remark); //输入新信息到节点
+    printf("格式：身份证号 姓名 性别 年龄 备注 密码\n");
+    scanf("%s %s %s %d %s %s", node->id, node->name, node->sex, &node->age, node->remark,node->password); //输入新信息到节点
     getchar(); //清除缓冲区的换行符
     printf("已成功修改游客信息。\n");
 }
@@ -377,6 +411,7 @@ void print_node(visitor *node) {
     printf("性别：%s\n", node->sex);
     printf("年龄：%d\n", node->age);
     printf("备注：%s\n", node->remark);
+    printf("密码：%s\n", node->password);
     printf("**********\n");
 }
 
@@ -478,5 +513,194 @@ void modify_password(char *password)
         }
     }
     check_password();
+}
+
+
+void fun(char* p) {
+    int k = 0;
+    while (*p) {
+        if (k == 0 && *p != ' ') {
+            *p = toupper(*p);
+            k = 1;
+        }
+        else if (*p != ' ') {
+            k = 1;
+        }
+        else {
+            k = 0;
+        }
+        p++;
+    }
+}
+
+bool is_leapYear(int year) {
+    if (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0))
+        return true;
+    else
+        return false;
+}
+void insert_appointment() { // 预约
+    Appointment* p = (Appointment*)malloc(sizeof(Appointment));
+    if (p == NULL) {
+        printf("The booking is invalid!");
+        return;
+    }
+    if (reserver >= MAX_RESERVER) {
+        printf("Reserver limit reached.\n");
+        return;
+    }
+    char Campusname[LENGTH];
+    char ID[LEN];
+    char username[LEN];
+    int i, j, IDfound = 0, Campusfound = 0;
+    printf("Enter the ID of user: ");
+    scanf("%s", ID);
+    getchar();
+    printf("\n");
+    for (i = 0; i < userNumber; i++) {
+        if (strcmp(user[i].id, ID) == 0) {
+            printf("Find the user!\n");
+            IDfound = 1;
+            break;
+        }
+    }
+    printf("Please enter the name of user:");
+    fgets(username, LEN, stdin);
+    username[strcspn(username, "\n")] = 0;
+    fun(username);
+    for (i = 0;i < reserver;i++) {
+        if (strcmp(res[i].userName, username) == 0) {
+            printf("该用户已预约\n");
+            return;
+        }
+    }
+    printf("该用户第一次预约\n");
+    if (!IDfound) {
+        printf("Not find such a user!\n");
+        free(p);
+        return;
+    }
+    printf("Enter the name of campus: ");
+    fgets(Campusname, LEN, stdin);
+    Campusname[strcspn(Campusname, "\n")] = 0; // 确保字符串以空字符结尾
+    printf("\n");
+    for (j = 0; j < 2; j++) {
+        if (strcmp(campus_name[j], Campusname) == 0) {
+            printf("Find the campus!\n");
+            strcpy(p->campus_name, campus_name[j]);
+            Campusfound = 1;
+            break;
+        }
+    }
+    if (!Campusfound) {
+        printf("Not find the campus!\n");
+        free(p);
+        return;
+    }
+    printf("Booking the campus successfully!\n");
+    int a, b, c, d, e;
+    long long int f;
+    printf("Start to reserve!\n");
+    printf("预约起止时间（例如 9 17）：");
+    scanf("%d %d", &a, &b);
+    printf("预约日期（例如 2 8 2024）：");
+    scanf("%d %d %d", &c, &d, &e);
+    printf("预约手机号: ");
+    scanf("%lld", &f);
+    while (getchar() != '\n'); // 清除缓冲区
+    printf("Enter your name: ");
+    fgets(p->userName, LEN, stdin);
+    p->userName[strcspn(p->userName, "\n")] = 0;
+    fun(p->userName);
+    p->startHour = a;
+    p->endHour = b;
+    p->month = c;
+    p->day = d;
+    p->year = e;
+    p->phonenumber = f;
+    if (a < 8 || b > 18 || c < 1 || c > 12 || (e != 2024 && e != 2025)) {
+        printf("The booking is unsuccessful!\n");
+        free(p);
+        return;
+    }
+    if (c == 1 || c == 3 || c == 5 || c == 7 || c == 8 || c == 10 || c == 12) {
+        if (d < 1 || d > 31) {
+            printf("The booking is unsuccessful!\n");
+            free(p);
+            return;
+        }
+    }
+    else if (c == 4 || c == 6 || c == 9 || c == 11) {
+        if (d < 1 || d > 30) {
+            printf("The booking is unsuccessful!\n");
+            free(p);
+            return;
+        }
+    }
+    else {
+        if (is_leapYear(e)) {
+            if (d < 1 || d > 29) {
+                printf("The booking is unsuccessful!\n");
+                free(p);
+                return;
+            }
+        }
+        else {
+            if (d < 1 || d > 28) {
+                printf("The booking is unsuccessful!\n");
+                free(p);
+                return;
+            }
+        }
+    }
+    printf("The booking is successful!\n");
+    p->next = head;
+    head = p;
+    res[reserver++] = *p;
+}
+
+void check_appointment() { // 检查预约是否成功
+    char name[MAX_NAME_LEN];
+    int i, j, found = 0;
+    printf("Please enter the username to check: ");
+    fgets(name, MAX_NAME_LEN, stdin);
+    name[strcspn(name, "\n")] = 0;
+    fun(name);
+    for (i = 0; i < userNumber; i++) {
+        if (strcmp(user[i].name, name) == 0) {
+            printf("Username: %s\tID: %s\n", user[i].name, user[i].id);
+            for (j = 0; j < reserver; j++) {
+                if (strcmp(res[j].userName, name) == 0) {
+                    printf("Reservation found: starthour: %d endhour: %d\nDate: day: %d, month: %d, year: %d\nphonenumber: %lld\n",
+                        res[j].startHour, res[j].endHour, res[j].day, res[j].month, res[j].year, res[j].phonenumber);
+                    printf("Reservation campus: %s\n", res[j].campus_name);
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found) {
+                printf("No reservation found for this user.\n");
+            }
+            return;
+        }
+    }
+    printf("User not found.\n");
+}
+
+void delete_user() {         //删除用户 
+    char ID[LEN];
+    printf("Enter your ID:");
+    fgets(ID, LEN, stdin);
+    ID[strcspn(ID, "\n")] = 0;
+    int i, j;
+    for (i = 0;i < userNumber;i++) {
+        if (strcmp(user[i].id, ID) == 0) {
+            for (j = i;j < userNumber - 1;j++) {
+                user[j] = user[j + 1];
+            }
+            userNumber--;
+            break;
+        }
+    }
 }
 
