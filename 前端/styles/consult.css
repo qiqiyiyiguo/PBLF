@@ -1,33 +1,100 @@
 h1{
-    color: rgb(111, 111, 111);
+    color: rgb(81, 81, 81);
     font-family: '楷体';
-    padding: 15px;
+    padding: 30px;
 }
 
+body{
+    
+   
+    background-image:url('../images/客服.jpg');
+    
+    overflow: hidden;
+    background-position:center bottom;
+    background-repeat: no-repeat;    
+   
+
+    background-size: cover; 
+    margin:0px;
+    background-size:100% 100%;
+    background-attachment:fixed;
+
+}
+    
+
+.welcomeMessage {
+    display: block;
+    }
+
+
 input{
-    margin-left:5%;
-    margin-top: 220px;
-    width: 480px; height: 25px;
+    position: fixed;
+    left:32%;
+    top:84%;
+    width: 460px; height: 30px;
     border-color: #ffffff;border-radius: 10px;
     border:none;
     box-shadow: 5px 5px 10px #888;
 }
 
 button{
-    padding: 8px 15px;
+    position: fixed;
+    left:65%;
+    top:84%;
+    width: 50px; height: 33px;
     background-color: #57a4f7;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    
 }
 
 main{
     width: 600px;height: 600px;margin: auto;position: relative;top:100px;bottom: 50px;
     border:solid, rgb(255, 255, 255);border-radius: 40px;box-shadow: 5px 5px 10px #888;
+    background-color: rgba(245, 242, 242, 0.9);
   }
 
- 
+
+section{
+    position: fixed;
+    width: 576px;height:570px;margin: auto;
+    top:16.5%;left:29.9%;
+    border: none;
+    overflow-y: auto;
+}
+
+
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* 允许垂直滚动 */
+    height: calc(100% - 60px); /* 减去输入框和底部间距的高度 */
+    padding: 10px; /* 根据需要调整内边距 */
+}
+
+/* 发送的消息样式 */
+.message-sent {
+    background-color: #b1e0ff;
+    color: rgb(0, 0, 0);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    align-self: flex-end; /* 发送的消息靠右对齐 */
+    max-width: 60%;
+}
+
+/* 接收的消息样式 */
+.message-received {
+    background-color: #e0e0e0; /* 灰色背景 */
+    color: black;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    align-self: flex-start; /* 接收的消息靠左对齐 */
+    max-width: 60%;
+}
  
  
  /* 通用部分 */
