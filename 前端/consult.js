@@ -13,36 +13,50 @@ function clickAfter(who) {
 }
 
 //获取输入
-const chatmessages = document.getElementById('chatmessages').value;
-console.log(chatmessages);
+const messageInput = document.getElementById('messageInput');
+const sendButton = document.getElementById('sendButton');
+const chatMessages = document.getElementById('chatMessages');
+const welcomeMessage = document.getElementById('welcomeMessage'); 
 
-var ws = new WebSocket('ws://localhost:808/echo'); // 使用 ws 协议
+var ws = new WebSocket('ws://localhost:8082/echo'); 
 
 ws.onopen = function () {
     console.log('WebSocket 连接已经建立。');
-    ws.send(jsonData);
 };
 
+ws.onmessage = function (event) {
+    console.log('收到服务器消息：', event.data);
+    const replyMessage = document.createElement('div');
+    replyMessage.textContent = event.data;
+    replyMessage.classList.add('message-received');
+    chatMessages.appendChild(replyMessage);
+};
 
- ws.onmessage = function (event) {
-        console.log('收到服务器消息：', event.data);
-        const receiverdData = event.data;
+sendButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    const message = messageInput.value;
+    if (message.trim() !== '') {
+        
+        const sentMessage = document.createElement('div');
+        sentMessage.textContent = message;
+        sentMessage.classList.add('message-sent');
+        chatMessages.appendChild(sentMessage);
 
-        if (receiverdData === 'success') {
-            alert("您已成功注册，点击确定跳转预约界面");
-            window.location.href = './book.html';
-        } else {
-            alert(receiverdData); // 如果是用户已存在，返回相应的错误信息
-        }
-    };
+        // 发送消息到服务器
+        ws.send(message);
 
-    ws.onerror = function (event) {
-        console.error('WebSocket 连接出现错误：', event);
-    };
+        // 清空输入框
+        messageInput.value = '';
 
-    ws.onclose = function () {
-        console.log('WebSocket 连接已经关闭。');
-    };
+        // 隐藏欢迎消息
+        welcomeMessage.style.display = 'none';
+    }
+});
 
-    console.log("本次提交数据：", jsonData);
+ws.onerror = function (event) {
+    console.error('WebSocket 连接出现错误：', event);
+};
 
+ws.onclose = function () {
+    console.log('WebSocket 连接已经关闭。');
+};
