@@ -1,6 +1,6 @@
 function clickAfter(who) { 
     if(who === '个人中心'){ 
-        window.location.href = "./login.html";
+        checkLogin();
     } else if(who === '文创产品') {
         window.location.href = "./goods.html";
     } else if(who === '校园风景') {
@@ -57,9 +57,9 @@ window.addEventListener("load", shell);
 // 注册逻辑
 function addData() {
     // 获取输入框中的数据
-    const name = document.getElementById('Name').value;
-    const number = document.getElementById('Number').value;
-    const password = document.getElementById('Password').value;
+    const name = document.getElementById('Name1').value;
+    const number = document.getElementById('Number1').value;
+    const password = document.getElementById('Password1').value;
     console.log(name, number, password);
 
     // 将数据转换为json格式
@@ -103,9 +103,9 @@ function addData() {
 // 登录逻辑
 function checkData() {
     // 获取输入框中的数据
-    const name = document.getElementById('Name').value;
-    const number = document.getElementById('Number').value;
-    const password = document.getElementById('Password').value;
+    const name = document.getElementById('Name2').value;
+    const number = document.getElementById('Number2').value;
+    const password = document.getElementById('Password2').value;
     console.log(name, number, password);
 
     // 将数据转换为json格式
@@ -125,14 +125,18 @@ function checkData() {
 
     ws.onmessage = function (event) {
         console.log('收到服务器消息：', event.data);
-        const receiverdData = event.data;
-
-        if (receiverdData === 'success') {
-            alert("您已成功登录，点击确定跳转预约界面");
-            window.location.href = './book.html'; // 登录成功后跳转到预约界面
-        } else {
-            alert(receiverdData); // 登录失败，返回错误信息
+        if(event.data==='User not found!'){
+            alert(event.data || 'Login failed');
+        }else{
+            const response = JSON.parse(event.data);
+            if (response.name && response.number) {
+                // 登录成功，跳转到个人中心页面
+                window.location.href = './personal_center.html';
+            } else {
+                alert(response.message || 'Login failed');
+            }
         }
+        
     };
 
     ws.onerror = function (event) {
@@ -149,9 +153,9 @@ function checkData() {
 // 删除用户
 function deleteData() {
     // 获取输入框中的数据
-    const name = document.getElementById('Name').value;
-    const number = document.getElementById('Number').value;
-    const password = document.getElementById('Password').value;
+    const name = document.getElementById('Name2').value;
+    const number = document.getElementById('Number2').value;
+    const password = document.getElementById('Password2').value;
     console.log(name, number, password);
 
     // 将数据转换为json格式
@@ -173,6 +177,41 @@ function deleteData() {
         console.log('收到服务器消息：', event.data);
         const receiverdData = event.data;
         alert(receiverdData);
+    };
+
+    ws.onerror = function (event) {
+        console.error('WebSocket 连接出现错误：', event);
+    };
+
+    ws.onclose = function () {
+        console.log('WebSocket 连接已经关闭。');
+    };
+
+    console.log("本次提交数据：", jsonData);
+}
+
+// 检查登录逻辑
+function checkLogin() {
+    const jsonData = JSON.stringify({
+        "task": 'checkLogin'
+    });
+
+    var ws = new WebSocket('ws://localhost:8080/echo'); // 使用 ws 协议
+
+    ws.onopen = function () {
+        console.log('WebSocket 连接已经建立。');
+        ws.send(jsonData);
+    };
+
+    ws.onmessage = function (event) {
+        console.log('收到服务器消息：', event.data);
+        const receiverdData = event.data;
+        if (receiverdData=="success") {
+            // 登录成功，跳转到个人中心页面
+            window.location.href = './personal_center.html';
+        } else {
+            window.location.href = './login.html';
+        }
     };
 
     ws.onerror = function (event) {

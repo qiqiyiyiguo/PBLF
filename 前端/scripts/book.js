@@ -1,6 +1,6 @@
 function clickAfter(who) { 
     if (who === '个人中心') {
-        window.location.href = "./login.html";
+        checkLogin();
     } else if (who === '文创产品') {
         window.location.href = "./goods.html";
     } else if (who === '校园风景') {
@@ -210,7 +210,7 @@ setInterval(() => {
 // 全局变量用于存储起始时间和终止时间
 let startTime = null;
 let endTime = null;
-let time ="";
+let time ='';
 
 // 获取所有时间选择元素
 const timeElements = document.querySelectorAll('.time');
@@ -303,11 +303,11 @@ btn2.classList.remove('selectedCampus');
 function upData(){
     time = `${startTime} ${endTime}`
     console.log(campus,time,selectedDateString);
-    if(campus === '' || time === '' || selectedDateString === ''){
+    if(campus === '' || time === '' || startTime=== null||endTime===null|| selectedDateString === ''){
         alert("请完整输入预约数据");
     }else{
 // 将数据转换为json格式
-const jsonData = JSON.stringify({"campus":campus,"time":time,"date":selectedDateString})
+const jsonData = JSON.stringify({"campus":campus,"time":time,"date":selectedDateString,"task":'appoint'})
 var ws = new WebSocket('http://localhost:8080/echo');
 ws.onopen = function() {
    console.log('WebSocket 连接已经建立。');
@@ -337,3 +337,37 @@ console.log("本次提交数据：",jsonData);
 }
 
 
+// 检查登录逻辑
+function checkLogin() {
+    const jsonData = JSON.stringify({
+        "task": 'checkLogin'
+    });
+
+    var ws = new WebSocket('ws://localhost:8080/echo'); // 使用 ws 协议
+
+    ws.onopen = function () {
+        console.log('WebSocket 连接已经建立。');
+        ws.send(jsonData);
+    };
+
+    ws.onmessage = function (event) {
+        console.log('收到服务器消息：', event.data);
+        const receiverdData = event.data;
+        if (receiverdData=="success") {
+            // 登录成功，跳转到个人中心页面
+            window.location.href = './personal_center.html';
+        } else {
+            window.location.href = './login.html';
+        }
+    };
+
+    ws.onerror = function (event) {
+        console.error('WebSocket 连接出现错误：', event);
+    };
+
+    ws.onclose = function () {
+        console.log('WebSocket 连接已经关闭。');
+    };
+
+    console.log("本次提交数据：", jsonData);
+}

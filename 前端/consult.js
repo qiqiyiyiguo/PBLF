@@ -18,7 +18,7 @@ const sendButton = document.getElementById('sendButton');
 const chatMessages = document.getElementById('chatMessages');
 const welcomeMessage = document.getElementById('welcomeMessage'); 
 
-var ws = new WebSocket('ws://localhost:8082/echo'); 
+var ws = new WebSocket('ws://localhost:7777'); 
 
 ws.onopen = function () {
     console.log('WebSocket 连接已经建立。');
