@@ -173,12 +173,12 @@ overflow: auto;
 }
 
 .goods:nth-child(3){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/成电定制伞.jpg);
     transform: rotateY(72deg) translateZ(85vw);
 }
 
 .goods:nth-child(4){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/成电手提包.jpg);
     transform: rotateY(108deg) translateZ(85vw);
 }
 
@@ -188,27 +188,27 @@ overflow: auto;
 }
 
 .goods:nth-child(6){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/格院文创/640.jpg);
     transform: rotateY(180deg) translateZ(85vw);
 }
 
 .goods:nth-child(7){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/我爱成电毛衣小熊.jpg);
     transform: rotateY(216deg) translateZ(85vw);
 }
 
 .goods:nth-child(8){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/花花联名冰箱贴.jpg);
     transform: rotateY(252deg) translateZ(85vw);
 }
 
 .goods:nth-child(9){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/天鹅熊猫/640.jpg);
     transform: rotateY(288deg) translateZ(85vw);
 }
 
 .goods:nth-child(10){
-    background-image: url(../文创/集电礼盒/640.jpg);
+    background-image: url(../文创/成电卡套/卡套.jpg);
     transform: rotateY(324deg) translateZ(85vw);
 }
 

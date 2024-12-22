@@ -49,12 +49,23 @@
 </div>
 
 
-    <div id="user-info">
-        <p>Name: <span id="user-name"></span></p>
-        <p>Number: <span id="user-number"></span></p>
-        <button onclick="logout()">Logout</button>
-    </div>
-    <div id="appointments"></div>
+<div class="card">
+  <!-- 用户信息 -->
+  <div class="user-info">
+      Name: <span id="user-name"></span><br>
+      Number: <span id="user-number"></span>
+  </div>
+  <!-- Logout按钮 -->
+  <button class="logout-button" onclick="logout()">Logout</button>
+
+  <!-- 预约信息标题 -->
+  <h2 class="appointments-title">预约信息</h2>
+
+  <!-- 预约信息列表 -->
+  <div id="appointments" class="appointments-list">
+      <!-- 预约信息将在这里显示 -->
+  </div>
+</div>
 
     <script src="scripts/personal_center.js"></script>
 </body>

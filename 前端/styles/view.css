@@ -29,7 +29,7 @@ body{
     margin-bottom: 40%;
     
     display: grid;
-    row-gap: 10%;
+    row-gap: 2%;
     grid-auto-flow: row;
     grid-template-columns: 1fr 1fr 2fr 3fr 2fr 1fr;
     grid-template-areas: 'a b c d e f'
@@ -199,6 +199,331 @@ body{
     font-family: kaiti;
     color:#050505
 }
+
+.card2:nth-child(4) .img::after {
+    position: absolute;
+    content: '品学楼外观庄重而大气，主体为浅灰色，外墙上有许多整齐排列的窗户，显得十分规整。建筑正上方有金色的校训“求质求真 大气大为”，彰显出学校的办学理念。楼前有几根粗壮的柱子支撑起一个门廊，门廊下可以看到通往楼内的阶梯。周围环境整洁，有一些绿植点缀。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(5) .img::after {
+    position: absolute;
+    content: '钢琴小屋位于清水河体育馆旁，是往届的学长捐赠的。每个小屋都像是童话世界森林里的小木屋，富有童趣又优雅至极。小屋后面有几颗银杏树，银杏后面是油菜花海。每当秋风吹过，银杏叶如金蝶飞舞，飘落在钢琴小屋的屋顶。而到了春天，油菜花海灿烂夺目，如同给小屋披上了一层金黄的锦缎，这里仿佛是被时光遗忘的梦幻之地。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(6) .img::after {
+    position: absolute;
+    content: '踏入十月份的校园，仿若踏入了一片被自然恩宠的芬芳仙境，其中最令人陶醉的，自然是那桂香四溢的迷人景致。只见那一株株桂花树，静静地伫立在校园的各个角落。散落在地上的桂花，如同点点繁星，散落人间。这些小巧的花朵随着微风微微颤动，像是在轻轻地呼吸，那淡雅的清香也随之飘散开来。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(7) .img::after {
+    position: absolute;
+    content: '宿舍区有一小片花圃，它们簇拥在一起，如同一群盛装的舞者。红的花朵似燃烧的火焰，热烈而奔放；粉的像天边的云霞，柔美且娇羞；黄的若璀璨的金箔，耀眼夺目；白的宛如冬日初雪，纯净无暇。花瓣层层叠叠，有的微微张开，露出娇嫩的花蕊，微风拂过，它们轻轻摇曳，散发出若有若无的清香，让这方角落充满了生机与诗意。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(8) .img::after {
+    position: absolute;
+    content: '在清水河校园，有一个大笼子，里面有两只公孔雀还有几只母孔雀。图中是一只正在开屏的孔雀。它的羽毛绚丽夺目，尾羽如同一把五彩斑斓的大扇子展开。每根尾羽上都布满了圆形的眼状斑纹，主要由蓝、绿、黄、棕等颜色组成，色彩搭配十分和谐。孔雀的头部和身体呈宝蓝色，颈部的羽毛短而密，泛着金属光泽。它站在地面上，姿态优雅，仿佛在向人们展示自己的美丽，整个画面充满了自然的魅力。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(9) .img::after {
+    position: absolute;
+    content: '在电子科技大学的清水河小区里，还有一种绝美的植物——蓝花楹。蓝花楹通常在春末夏初，也就是 5 - 6 月间盛开。它喜欢阳光充足和温暖湿润的环境，具有一定的耐旱能力。蓝花楹多生长在热带和亚热带地区，常被作为行道树或观赏树种植在公园、校园和居民区等地，其盛开时能为周围环境增添浪漫和优雅的氛围。整个场景给人一种宁静而美好的感觉，仿佛置身于一个充满诗意的校园角落，蓝花楹的盛开为单调的建筑增添了一抹亮丽的色彩。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(10) .img::after {
+    position: absolute;
+    content: '在这两个校区里，都有许多的小动物，各种鸟类，狗狗，猫猫，还有天鹅等。图中就是清水河的一只缅因猫。它正安静地坐在石板路上，有着浓密的毛发，毛色为棕黑相间，眼睛明亮，显得十分警觉。同学们长时间地和它友好相处让它很放松。在学校里，甚至还能看见，在路旁睡觉的可爱小猫。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(11) .img::after {
+    position: absolute;
+    content: '这是清水河校区品学楼旁的银杏林。这片银杏林在阳光的照耀下显得格外迷人。银杏树叶已变成金黄色，仿佛给树林披上了一层金色的纱衣。林间小道上，有行人悠闲地散步，还有人骑着自行车穿梭其中，享受着这秋日的美景。远处的高楼大厦在树林的后方若隐若现，给这片自然景观增添了一丝都市气息。整个场景充满了宁静与和谐，是人们放松身心、感受秋意的好去处。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(12) .img::after {
+    position: absolute;
+    content: '这是图书馆前的草坪上最具特色的一棵树。它静静矗立在那里，见证了许多成电学子的婚姻，因为很多毕业的情侣都会选择来这里拍一张婚纱照。这棵茂盛的大树，树冠茂密，树叶呈现出深绿色，树干底部被涂成了白色。大树在阳光的照射下，在草地上投下了一片巨大的阴影。背景中可以看到更多的树木，这些树木的颜色从深绿到浅绿不等，显示出不同的树种和生长状态。远处的天空湛蓝，给人一种清新、宁静的感觉。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(13) .img::after {
+    position: absolute;
+    content: '这是西湖里一朵盛开的粉色睡莲。睡莲位于画面中央，花瓣层层展开，中心呈现出明亮的黄色花蕊，显得格外娇艳。周围环绕着大片绿色的莲叶，莲叶上布满了晶莹的水珠，仿佛刚刚下过一场雨。在画面的左侧，还能看到一朵黄色的小花和一些枯萎的莲叶，增添了画面的层次感。背景是深色的水面，使得粉色的睡莲更加突出，整个画面给人一种宁静而清新的感觉。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(14) .img::after {
+    position: absolute;
+    content: '这是沙河的第四教学楼。建筑物的外墙是浅色的，顶部有一个突出的结构，上面安装有天线和其他设备。建筑物的前方有几棵树木，树叶呈现出金黄色和绿色的渐变色彩，显然是秋季的景象。背景中可以看到几栋高层建筑，这些建筑物的外墙上有许多窗户，显得非常现代。整体氛围宁静，金黄色的树叶给画面增添了一抹温暖的色调。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(15) .img::after {
+    position: absolute;
+    content: '这是清水河校区的图书馆。图书馆的外观简洁大气，外墙由白色的几何块状结构组成，搭配大面积的玻璃窗，显得明亮而通透。建筑前方有一段宽阔的台阶，台阶两侧是绿色的草坪。左侧有一盏路灯，右侧有一名学生正沿着台阶向上走，可能是准备进入图书馆学习。蓝天白云的背景为整个场景增添了一份宁静与开阔的氛围，这里无疑是学生们汲取知识的理想场所。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(16) .img::after {
+    position: absolute;
+    content: '广场上绿草如茵，中央有一棵茂盛的大树，为这片区域增添了一抹绿意。广场的右侧停放着许多自行车和电动车，显示出这里是学生们常用的交通停靠点。远处可以看到几栋现代风格的建筑物，蓝天白云的背景让整个场景显得格外清新明亮。广场上还有一面飘扬的红旗，给人一种充满活力和朝气的感觉，是学生们休闲和交流的好地方。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(17) .img::after {
+    position: absolute;
+    content: '西湖中，湖水平静如镜，倒映着岸边的树木。湖面上有几只鸭子在悠闲地游动，给画面增添了生机。岸边是一排高大的树木，树干笔直，树叶呈现出深浅不一的绿色和棕色，显示出季节的变化。树木旁边是一片茂密的芦苇丛，芦苇随风摇曳。远处可以看到一些行人，整个场景显得非常祥和、自然，给人一种放松的感觉。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(18) .img::after {
+    position: absolute;
+    content: '在西湖的岸边，有许多长椅，静谧环境惹得许多人在学习之余来这呼吸新鲜空气，放松心灵。细长的柳枝如绿色的帘幕垂下，随风轻轻摇曳。柳树旁是一片平静的湖水，湖面如镜，倒映着周围的景色。远处能看到湖中的喷泉，白色的水柱在阳光下闪烁。湖的对岸是一片绿意盎然的树林，阳光透过树叶洒下，给整个场景增添了一层柔和的光晕，营造出一种静谧而美好的氛围。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(19) .img::after {
+    position: absolute;
+    content: '清水河校区有两个人工湖，一个西湖，一个东湖，这边是西湖连廊右边的景象。画面左侧有一段红色木质栏杆，栏杆外是一片水域，水面上漂浮着绿色的荷叶和粉色的荷花。湖的对岸是一排石柱，石柱上方爬满了绿色的藤蔓，形成了一道天然的绿色长廊。长廊后方是茂密的树林，树木高大挺拔，绿意盎然。整个场景给人一种静谧、自然的感觉，仿佛是一个远离喧嚣的世外桃源。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(20) .img::after {
+    position: absolute;
+    content: '这是在西湖旁，电子科技博物馆外的小平台。木质地板上布满了雨水的反光，显得格外湿润。地板上摆放着几张黑色的桌椅，周围是高大的树木，树干笔直，树叶茂密。画面左侧有一个白色的框架结构，旁边还有一个告示牌。远处的背景有些模糊，但能隐约看到一些绿植和建筑物。整个场景给人一种宁静、清新的感觉，仿佛能闻到雨后泥土和树木的芬芳。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(21) .img::after {
+    position: absolute;
+    content: '一条由石块铺成的小径蜿蜒穿过水域，石块上有自然的纹理。小径旁有一小股清泉潺潺流下，汇入水中，形成了悦耳的水声。水域两侧布满了绿色的水草和苔藓，显得生机勃勃。背景中是茂密的树林，树木高大，枝叶繁茂，阳光透过树叶洒下，营造出一种静谧而祥和的氛围，仿佛是一处世外桃源。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(22) .img::after {
+    position: absolute;
+    content: '这是西湖其中一座拱形石桥，桥身由灰白色石块砌成，桥栏为深红色。桥下的湖水如镜，倒映着桥的身影。湖的右侧有一棵垂柳，细长的柳枝垂入水中，旁边还有一些盛开的花朵。湖的左侧和远处是茂密的树林，树木郁郁葱葱，层次分明。整个场景给人一种静谧、和谐的感觉，仿佛置身于世外桃源。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(23) .img::after {
+    position: absolute;
+    content: '西湖中的鸭子每日无忧无虑自由自在的。池塘的水面平静，倒映着周围的绿色植物。岸边有三只白色的鸭子，它们正低头觅食，姿态悠闲。池塘边生长着茂盛的绿色植物，其中有几片大荷叶漂浮在水面上，增添了几分自然的气息。在植物中还能看到几朵橙色的小花，为画面增添了一抹亮色。背景中可以看到一些树木和阴影，营造出一种静谧、祥和的氛围。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(24) .img::after {
+    position: absolute;
+    content: '宣邦楼是今年刚修好的楼，顶端是晶体管的设计，很符合电子科技大学的元素。钟楼主体呈浅米色，顶部为黑色圆顶，圆顶上方有一个小型的塔尖。钟楼上有两个圆形的时钟，分别位于钟楼的中上部和中部，时钟的指针清晰可见。钟楼的设计带有欧式风格，旁边是一栋与之风格相似的建筑，墙体颜色与钟楼一致。建筑周围有一些树木，整体环境显得宁静而优雅。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(25) .img::after {
+    position: absolute;
+    content: '校门由一块大型石碑构成，上面刻有 “电子科技大学” 的校名。石碑前方是一片色彩斑斓的花坛，种满了粉色、紫色和橙色的花卉，显得生机勃勃。花坛旁边有一些园艺工具和材料，可能是用于维护的。背景中可以看到茂密的树木，郁郁葱葱，给人一种宁静而充满活力的感觉，整个场景显得庄重而美丽。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
+.card2:nth-child(26) .img::after {
+    position: absolute;
+    content: '银杏大道旁有供行人走的石板人行道，这条被雨水打湿的银杏路。道路两旁是高大的银杏树，树干底部涂有白色的保护层，树叶呈现出绿色和黄色的渐变，显示出秋意。地面上散落着许多枯黄的银杏叶，积水倒映出树木和天空的景象。远处有一个撑着伞的行人，孤独地走在这条宁静的小道上，小道两侧还有几张长椅，整个画面给人一种静谧、略带忧伤的氛围。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 90%;
+    right: 110%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505;
+    text-align: left;
+}
+
+.card1:nth-child(27) .img::after {
+    position: absolute;
+    content: '这是综训馆旁的一片斜坡草地，草地上绿草如茵，点缀着一些白色的小花。草地的两侧是茂密的树林，树木高大挺拔，树叶呈现出鲜绿色，充满生机。左侧有一条由石板铺成的小径，小径上散落着一些枯叶，增添了一丝自然的野趣。天空呈现出淡蓝色，整个场景给人一种宁静、清新的感觉，仿佛是一个远离喧嚣的世外桃源。';
+    width: 400px;
+    word-break: break-all;
+    font-size: 80%;
+    left: 113%;
+    pointer-events: auto;
+    cursor: pointer;
+    font-family: kaiti;
+    color:#050505
+}
+
 
 
 /* 通用部分 */
