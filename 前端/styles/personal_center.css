@@ -1,3 +1,79 @@
+/* 半透明白色方框 */
+.card {
+    height: 600px;
+    margin: auto;
+    position:relative;top:100px;bottom: 50px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 60%;
+    padding: 20px;
+    text-align: center;
+    
+}
+
+/* 用户信息样式 */
+.user-info {
+    position: absolute;
+    top: 30px;
+    left:30px;
+    font-size: 1.2em;
+    line-height: 2;
+}
+
+body{
+    background-color: rgba(207, 237, 250, 0.8);
+}
+
+
+
+.user-info span {
+    font-weight: bold;
+}
+
+/* Logout按钮样式 */
+.logout-button {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    padding: 10px 20px;
+    background-color: #cecece;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+/* 预约信息标题 */
+.appointments-title {
+    position:relative;top:80px;bottom: 50px;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center;
+    padding: 50px;
+}
+
+.appointments-list {
+    font-size: 1.1em;
+    position:relative;top:60px;left: 8%;
+    width: 80%;
+    height: 55%;
+    background-color: #ffffff; /* 深色背景 */
+    color: rgb(72, 72, 72); /* 浅色文字，以便在深色背景上阅读 */
+    padding: 10px; /* 内边距 */
+    border-radius: 5px; /* 圆角边框 */
+}
+
+.appointments-list div {
+    margin-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.64); /* 子项的背景稍微透明一些 */
+    padding: 5px 10px; /* 子项的内边距 */
+    border-radius: 3px; /* 子项的圆角边框 */
+}
+
+
+
 /* 通用部分 */
 ico{
     float: left;
