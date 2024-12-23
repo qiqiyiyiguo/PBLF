@@ -260,6 +260,7 @@ ico>img{
     left: 72px;
     /* 真实元素阻止鼠标事件，伪元素自动鼠标事件 */
     pointer-events: auto;
+    /* 光标悬停类型 */
     cursor: pointer;
     font-family: kaiti;
 }
